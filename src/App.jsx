@@ -8,6 +8,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { JobsProvider } from "./context/JobsContext";
 import { Navbar, Footer, ScrollToTop, LoadingScreen } from "./components/common";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -18,6 +19,8 @@ import Onboarding from "./pages/Onboarding";
 import DashboardPage from "./pages/DashboardPage";
 import MyProjects from "./pages/MyProjects";
 import Messages from "./pages/Messages";
+import Reports from "./pages/Reports";
+import FindWorkPage from "./pages/FindWorkPage";
 import CreateProfilePage from "./pages/CreateProfilePage";
 import RoleSelectionPage from "./pages/RoleSelectionPage";
 
@@ -105,10 +108,28 @@ function AppLayout() {
         />
 
         <Route
+          path="/find-work"
+          element={
+            <ProtectedRoute>
+              <FindWorkPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/messages"
           element={
             <ProtectedRoute>
               <Messages />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
             </ProtectedRoute>
           }
         />
@@ -147,7 +168,9 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppLayout />
+        <JobsProvider>
+          <AppLayout />
+        </JobsProvider>
       </AuthProvider>
     </Router>
   );
