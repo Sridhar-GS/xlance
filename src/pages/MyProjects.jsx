@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import PageTransition from '../components/common/PageTransition';
 import { Card, Button } from '../components/common';
-import { Briefcase, AlertTriangle, Pause, Award, Feather, HandshakeIcon, Trophy, PenLine } from 'lucide-react';
+import { Briefcase, AlertTriangle, Pause, Award, Feather, HandshakeIcon, Trophy, PenLine, Play } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const sampleProjects = [

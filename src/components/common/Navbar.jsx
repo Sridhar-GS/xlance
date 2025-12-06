@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -6,6 +6,7 @@ import Button from './Button';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const { user, userProfile, signOut } = useAuth();
   const location = useLocation();
   const isHome = location?.pathname === '/';
@@ -36,8 +37,38 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
+  // hide on scroll down, show on scroll up
+  const prevScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0);
+  useEffect(() => {
+    const onScroll = () => {
+      const current = window.scrollY || window.pageYOffset || 0;
+      // if mobile menu is open, keep navbar visible
+      if (isOpen) {
+        prevScrollY.current = current;
+        setHidden(false);
+        return;
+      }
+
+      const delta = current - prevScrollY.current;
+      const threshold = 10; // small threshold to avoid jitter
+
+      if (delta > threshold && current > 40) {
+        // scrolling down
+        setHidden(true);
+      } else if (prevScrollY.current - current > threshold) {
+        // scrolling up
+        setHidden(false);
+      }
+
+      prevScrollY.current = current;
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isOpen]);
+
   return (
-    <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] md:w-[92%] max-w-7xl z-50 bg-white/40 rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.2)] backdrop-blur-2xl border border-white/30 py-2">
+    <nav className={`fixed top-6 left-1/2 transform -translate-x-1/2 ${hidden && !isOpen ? '-translate-y-28' : 'translate-y-0'} transition-transform duration-300 w-[calc(100%-2rem)] md:w-[92%] max-w-7xl z-50 bg-white/40 rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.2)] backdrop-blur-2xl border border-white/30 py-2`}>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           <Link to="/" className="flex items-center gap-2">
@@ -107,7 +138,7 @@ const Navbar = () => {
 
           <button
             className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => setIsOpen(prev => { const next = !prev; if (next) setHidden(false); return next; })}
             aria-label="Toggle menu"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
