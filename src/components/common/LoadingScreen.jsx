@@ -128,6 +128,18 @@ const LoadingScreen = ({ size = 'lg', fullscreen = true }) => {
         className={`absolute ${currentSize.glow} rounded-full bg-gradient-to-r from-primary-500/15 to-primary-400/15 dark:from-primary-400/25 dark:to-primary-500/25 blur-2xl`}
       />
 
+      {/* Shimmer sweep across core */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none flex items-center justify-center"
+        initial={{ x: '-140%' }}
+        animate={{ x: '140%' }}
+        transition={{ duration: 2.3, repeat: Infinity, ease: 'easeInOut', repeatDelay: 0.3 }}
+        style={{
+          background: 'linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.08) 60%, transparent 100%)',
+          filter: 'blur(1px)',
+        }}
+      />
+
       {/* Main Logo Container */}
       <motion.div
         variants={logoVariants}
