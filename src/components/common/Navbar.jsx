@@ -3,10 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from './Button';
+import ProfileCompletionModal from './ProfileCompletionModal';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const { user, userProfile, signOut } = useAuth();
   const location = useLocation();
   const isHome = location?.pathname === '/';
@@ -119,9 +121,13 @@ const Navbar = () => {
                     <button className="text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-md hover:bg-white/10" title="Notifications">
                       <Bell size={20} />
                     </button>
-                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100">
+                    <button 
+                      onClick={() => setShowProfileModal(true)}
+                      className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 ring-2 ring-transparent hover:ring-primary-300 transition-all cursor-pointer"
+                      title="View Profile Progress"
+                    >
                       <img src={userProfile?.photoURL || user?.photoURL || '/src/assets/logo.png'} alt="avatar" className="w-full h-full object-cover" />
-                    </div>
+                    </button>
                     <button onClick={handleSignOut} className="text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-md hover:bg-white/10" title="Sign out">
                       <LogOut size={20} />
                     </button>
@@ -152,6 +158,19 @@ const Navbar = () => {
             )}
             {user ? (
               <>
+                <button 
+                  onClick={() => { setShowProfileModal(true); setIsOpen(false); }}
+                  className="flex items-center gap-3 w-full py-2 text-left"
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 ring-2 ring-primary-300">
+                    <img src={userProfile?.photoURL || user?.photoURL || '/src/assets/logo.png'} alt="avatar" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{userProfile?.name || user?.displayName || 'User'}</p>
+                    <p className="text-xs text-gray-600">View Profile Progress</p>
+                  </div>
+                </button>
+                <div className="border-t border-white/30 my-2" />
                 <Link to={dashboardPath} className={getLinkClass(dashboardPath) + ' block py-2'}>Dashboard</Link>
                 <Link to="/find-work" className={getLinkClass('/find-work') + ' block py-2'}>Find Work</Link>
                 <Link to="/projects" className={getLinkClass('/projects') + ' block py-2'}>My Projects</Link>
@@ -172,6 +191,9 @@ const Navbar = () => {
           </div>
         )}
       </div>
+
+      {/* Profile Completion Modal */}
+      <ProfileCompletionModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </nav>
   );
 };
