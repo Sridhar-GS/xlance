@@ -24,23 +24,33 @@ import FindWorkPage from "./pages/FindWorkPage";
 import CreateProfilePage from "./pages/CreateProfilePage";
 import RoleSelectionPage from "./pages/RoleSelectionPage";
 
-// Auto-redirect user based on role after onboarding
+/**
+ * Traffic controller for /dashboard
+ * Redirects user to their specific role dashboard (client or freelancer)
+ */
 function DashboardRedirect() {
   const { userProfile, loading } = useAuth();
 
   if (loading) return <LoadingScreen />;
 
   const role = userProfile?.role;
-  if (!role || role.length === 0) {
+  // If no role, they shouldn't be here, send to onboarding
+  if (!role || (Array.isArray(role) && role.length === 0)) {
     return <Navigate to="/onboarding" replace />;
   }
 
+  // Get first role (freelancer or client)
   const firstRole = Array.isArray(role) ? role[0] : role;
   return <Navigate to={`/dashboard/${firstRole}`} replace />;
 }
 
+
 function AppLayout() {
   const location = useLocation();
+  
+  const { user, loading } = useAuth();
+  
+  if (loading) return <LoadingScreen />;
   const isAuthPage = [
     "/auth/signin",
     "/auth/signup",
@@ -57,8 +67,16 @@ function AppLayout() {
         <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/auth/signup" element={<SignUpPage />} />
-        <Route path="/auth/signin" element={<SignInPage />} />
+        
+          {/* If already logged in, show /onboarding instead of Signup/Signin */}
+          <Route 
+            path="/auth/signup" 
+            element={user ? <Navigate to="/onboarding" replace /> : <SignUpPage />} 
+          />
+          <Route 
+            path="/auth/signin" 
+            element={user ? <Navigate to="/onboarding" replace /> : <SignInPage />} 
+          />
 
         {/* Onboarding Route (logged-in but not yet onboarded) */}
         <Route
@@ -169,7 +187,9 @@ export default function App() {
     <Router>
       <AuthProvider>
         <JobsProvider>
-          <AppLayout />
+        
+            <AppLayout />
+          
         </JobsProvider>
       </AuthProvider>
     </Router>

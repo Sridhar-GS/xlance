@@ -6,91 +6,101 @@ import { useAuth } from '../context/AuthContext';
 import { updateUserProfile } from '../services/user_services';
 
 const Onboarding = () => {
-  const { user, userProfile, refreshUserProfile, applyMockProfileUpdate } = useAuth();
+  const { user, userProfile, refreshUserProfile } = useAuth();
   const navigate = useNavigate();
 
   const [roleChoice, setRoleChoice] = useState('');
-  const [freelancer, setFreelancer] = useState({ headline: '', skills: '', yearsExperience: '' });
-  const [client, setClient] = useState({ companyType: 'individual', companyName: '', hiringNeeds: '' });
+  const [freelancer, setFreelancer] = useState({
+    headline: '',
+    skills: '',
+    yearsExperience: '',
+  });
+  const [client, setClient] = useState({
+    companyType: 'individual',
+    companyName: '',
+    hiringNeeds: '',
+  });
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Redirect if already onboarded
   useEffect(() => {
-    if (!user) return;
-    if (userProfile && userProfile.onboardingCompleted) {
-      // redirect based on roles
+    if (!user || !userProfile) return;
+
+    if (userProfile.onboardingCompleted) {
       const roles = userProfile.role || [];
-      if (roles.includes('freelancer') && !roles.includes('client')) navigate('/freelancer/dashboard');
-      else if (roles.includes('client') && !roles.includes('freelancer')) navigate('/client/dashboard');
-      else if (roles.includes('client') && roles.includes('freelancer')) navigate('/freelancer/dashboard');
+      if (roles.includes('client') && !roles.includes('freelancer')) {
+        navigate('/client/dashboard', { replace: true });
+      } else {
+        navigate('/freelancer/dashboard', { replace: true });
+      }
     }
   }, [user, userProfile, navigate]);
 
-  if (!user) return <div className="min-h-screen flex items-center justify-center">Not signed in</div>;
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Not signed in
+      </div>
+    );
+  }
 
   const onSubmit = async () => {
-    if (!roleChoice) return alert('Please select a role');
-    setIsSaving(true);
-    const rolesArr = roleChoice === 'both' ? ['client', 'freelancer'] : [roleChoice];
+    if (!roleChoice) {
+      setError('Please select a role');
+      return;
+    }
 
-    const data = {
+    setIsSaving(true);
+    setError(null);
+
+    const rolesArr =
+      roleChoice === 'both' ? ['client', 'freelancer'] : [roleChoice];
+
+    const payload = {
       role: rolesArr,
       onboardingCompleted: true,
+      updatedAt: new Date(),
     };
 
     if (rolesArr.includes('freelancer')) {
-      data.freelancerProfile = {
-        headline: freelancer.headline,
-        skills: freelancer.skills,
+      payload.freelancerProfile = {
+        headline: freelancer.headline.trim(),
+        skills: freelancer.skills
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
         yearsExperience: Number(freelancer.yearsExperience) || 0,
       };
     }
 
     if (rolesArr.includes('client')) {
-      data.clientProfile = {
+      payload.clientProfile = {
         companyType: client.companyType,
-        companyName: client.companyName,
-        hiringNeeds: client.hiringNeeds,
+        companyName: client.companyName.trim(),
+        hiringNeeds: client.hiringNeeds.trim(),
       };
     }
 
     try {
-      // add a timeout to avoid hanging if Firestore is slow/offline
-      const updatePromise = updateUserProfile(user.uid, data);
-      const timeoutMs = 6000;
-      const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve('timeout'), timeoutMs));
-      const res = await Promise.race([updatePromise, timeoutPromise]);
+      await updateUserProfile(user.uid, payload);
+      await refreshUserProfile();
 
-      if (res === 'timeout') {
-        console.warn('updateUserProfile timed out; applying profile in-memory and continuing');
-        applyMockProfileUpdate(data);
-      } else if (res === false || user?.uid?.toString().startsWith('mock')) {
-        // Firestore reported unavailable or we are using a mock user
-        applyMockProfileUpdate(data);
-      } else if (refreshUserProfile) {
-        await refreshUserProfile();
+      if (rolesArr.length === 1 && rolesArr[0] === 'client') {
+        navigate('/client/dashboard', { replace: true });
+      } else {
+        navigate('/freelancer/dashboard', { replace: true });
       }
-
-      // redirect
-      if (rolesArr.length === 1 && rolesArr[0] === 'client') navigate('/client/dashboard');
-      else navigate('/freelancer/dashboard');
     } catch (err) {
-      console.error(err);
-      // As a last resort, apply locally and navigate so the user is not blocked
-      try { applyMockProfileUpdate(data); } catch (e) { /* ignore */ }
-      if (rolesArr.length === 1 && rolesArr[0] === 'client') navigate('/client/dashboard');
-      else navigate('/freelancer/dashboard');
+      console.error('Onboarding save failed:', err);
+      setError('Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleBack = () => {
-    try {
-      if (window && window.history && window.history.length > 1) navigate(-1);
-      else navigate('/auth/signup');
-    } catch (e) {
-      navigate('/auth/signup');
-    }
+    navigate('/auth/signup');
   };
 
   return (
@@ -99,56 +109,154 @@ const Onboarding = () => {
         <div className="w-full max-w-2xl">
           <Card className="p-6">
             <h2 className="text-2xl font-bold mb-1">Welcome to Xlance</h2>
-            <p className="text-sm text-gray-500 mb-6">Tell us how you want to use Xlance and we’ll customise your experience.</p>
+            <p className="text-sm text-gray-500 mb-6">
+              Tell us how you want to use Xlance and we’ll customise your experience.
+            </p>
 
+            {error && (
+              <div className="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+
+            {/* ROLE SELECTION */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <button type="button" onClick={() => setRoleChoice('client')} className={`p-4 rounded-lg border ${roleChoice === 'client' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}>
-                <div className="font-semibold">Hire Freelancers</div>
-                <div className="text-sm text-gray-600">Find and hire top talent</div>
-              </button>
-
-              <button type="button" onClick={() => setRoleChoice('freelancer')} className={`p-4 rounded-lg border ${roleChoice === 'freelancer' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}>
-                <div className="font-semibold">Work as a Freelancer</div>
-                <div className="text-sm text-gray-600">Find projects and clients</div>
-              </button>
-
-              <button type="button" onClick={() => setRoleChoice('both')} className={`p-4 rounded-lg border ${roleChoice === 'both' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}>
-                <div className="font-semibold">Both</div>
-                <div className="text-sm text-gray-600">Hire and work on projects</div>
-              </button>
+              {['client', 'freelancer', 'both'].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRoleChoice(r)}
+                  className={`p-4 rounded-lg border transition ${
+                    roleChoice === r
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="font-semibold">
+                    {r === 'client'
+                      ? 'Hire Freelancers'
+                      : r === 'freelancer'
+                      ? 'Work as a Freelancer'
+                      : 'Both'}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {r === 'client'
+                      ? 'Find and hire top talent'
+                      : r === 'freelancer'
+                      ? 'Find projects and clients'
+                      : 'Hire and work on projects'}
+                  </div>
+                </button>
+              ))}
             </div>
 
-            { (roleChoice === 'freelancer' || roleChoice === 'both') && (
+            {/* FREELANCER FORM */}
+            {(roleChoice === 'freelancer' || roleChoice === 'both') && (
               <section className="mb-6">
-                <h3 className="font-medium text-gray-900 mb-3">Freelancer Details</h3>
+                <h3 className="font-medium text-gray-900 mb-3">
+                  Freelancer Details
+                </h3>
                 <div className="grid grid-cols-1 gap-3">
-                  <Input label="Headline" value={freelancer.headline} onChange={(e) => setFreelancer(s => ({ ...s, headline: e.target.value }))} />
-                  <Input label="Skills (comma separated)" value={freelancer.skills} onChange={(e) => setFreelancer(s => ({ ...s, skills: e.target.value }))} />
-                  <Input label="Years of Experience" type="number" value={freelancer.yearsExperience} onChange={(e) => setFreelancer(s => ({ ...s, yearsExperience: e.target.value }))} />
+                  <Input
+                    label="Headline"
+                    value={freelancer.headline}
+                    onChange={(e) =>
+                      setFreelancer((s) => ({
+                        ...s,
+                        headline: e.target.value,
+                      }))
+                    }
+                  />
+                  <Input
+                    label="Skills (comma separated)"
+                    value={freelancer.skills}
+                    onChange={(e) =>
+                      setFreelancer((s) => ({
+                        ...s,
+                        skills: e.target.value,
+                      }))
+                    }
+                  />
+                  <Input
+                    label="Years of Experience"
+                    type="number"
+                    value={freelancer.yearsExperience}
+                    onChange={(e) =>
+                      setFreelancer((s) => ({
+                        ...s,
+                        yearsExperience: e.target.value,
+                      }))
+                    }
+                  />
                 </div>
               </section>
             )}
 
-            { (roleChoice === 'client' || roleChoice === 'both') && (
+            {/* CLIENT FORM */}
+            {(roleChoice === 'client' || roleChoice === 'both') && (
               <section className="mb-6">
-                <h3 className="font-medium text-gray-900 mb-3">Client Details</h3>
+                <h3 className="font-medium text-gray-900 mb-3">
+                  Client Details
+                </h3>
                 <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="inline-flex items-center mr-4"><input type="radio" name="companyType" value="individual" checked={client.companyType === 'individual'} onChange={() => setClient(c => ({ ...c, companyType: 'individual' }))} /> <span className="ml-2">Individual</span></label>
-                    <label className="inline-flex items-center ml-4"><input type="radio" name="companyType" value="company" checked={client.companyType === 'company'} onChange={() => setClient(c => ({ ...c, companyType: 'company' }))} /> <span className="ml-2">Company</span></label>
+                  <div className="flex gap-4">
+                    {['individual', 'company'].map((t) => (
+                      <label key={t} className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          name="companyType"
+                          checked={client.companyType === t}
+                          onChange={() =>
+                            setClient((c) => ({ ...c, companyType: t }))
+                          }
+                        />
+                        <span className="ml-2 capitalize">{t}</span>
+                      </label>
+                    ))}
                   </div>
-                  <Input label="Company Name (optional)" value={client.companyName} onChange={(e) => setClient(s => ({ ...s, companyName: e.target.value }))} />
+
+                  <Input
+                    label="Company Name (optional)"
+                    value={client.companyName}
+                    onChange={(e) =>
+                      setClient((s) => ({
+                        ...s,
+                        companyName: e.target.value,
+                      }))
+                    }
+                  />
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Hiring Needs</label>
-                    <textarea value={client.hiringNeeds} onChange={(e) => setClient(s => ({ ...s, hiringNeeds: e.target.value }))} className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-primary-500" rows={4} />
+                    <label className="block text-sm font-medium mb-2">
+                      Hiring Needs
+                    </label>
+                    <textarea
+                      rows={4}
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-primary-500"
+                      value={client.hiringNeeds}
+                      onChange={(e) =>
+                        setClient((s) => ({
+                          ...s,
+                          hiringNeeds: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
                 </div>
               </section>
             )}
 
             <div className="flex justify-end gap-4">
-              <Button variant="secondary" onClick={handleBack}>Back</Button>
-              <Button onClick={onSubmit} isLoading={isSaving} disabled={!roleChoice}>{isSaving ? 'Saving...' : 'Continue'}</Button>
+              <Button variant="secondary" onClick={handleBack}>
+                Back
+              </Button>
+              <Button
+                onClick={onSubmit}
+                isLoading={isSaving}
+                disabled={!roleChoice}
+              >
+                {isSaving ? 'Saving...' : 'Continue'}
+              </Button>
             </div>
           </Card>
         </div>

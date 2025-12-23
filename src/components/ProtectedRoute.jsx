@@ -1,24 +1,22 @@
-// src/components/ProtectedRoute.jsx
-import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children, requireOnboarded = true }) => {
   const { user, userProfile, loading } = useAuth();
+  const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
+  if (loading) return null; // Show nothing or a spinner
 
+  // 1. Not logged in
   if (!user) {
-    return <Navigate to="/auth/signin" replace />;
+    return <Navigate to="/auth/signin" state={{ from: location }} replace />;
   }
 
-  if (requireOnboarded && (!userProfile || !userProfile.onboardingCompleted)) {
+  // 2. Profile not yet fetched
+  if (!userProfile) return null;
+
+  // 3. Logged in but NOT onboarded (and trying to access a restricted page)
+  if (requireOnboarded && !userProfile.onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 

@@ -3,48 +3,35 @@ import { db } from '../firebase';
 
 export const createUserProfile = async (user, extraData = {}) => {
   if (!user || !user.uid) return null;
-  const userRef = doc(db, 'users', user.uid);
-  let userSnap;
-  try {
-    userSnap = await getDoc(userRef);
-  } catch (err) {
-    // If client is offline or Firestore unavailable, log and return minimal payload
-    console.warn('getDoc failed in createUserProfile (continuing):', err && err.message ? err.message : err);
-    return null;
-  }
 
-  if (!userSnap.exists()) {
-    const name = user.displayName || extraData.name || '';
-    const email = user.email || '';
-    const photoURL = user.photoURL || null;
+  const userRef = doc(db, 'users', user.uid);
+
+  const fallbackProfile = {
+    uid: user.uid,
+    name: user.displayName || extraData.name || "",
+    email: user.email || "",
+    photoURL: user.photoURL || null,
+    role: [],
+    onboardingCompleted: false,
+  };
+
+  try {
+    const snap = await getDoc(userRef);
+    if (snap.exists()) return snap.data();
 
     const payload = {
-      uid: user.uid,
-      name,
-      email,
-      photoURL,
-      role: [],
-      onboardingCompleted: false,
+      ...fallbackProfile,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      ...extraData,
     };
 
-    try {
-      await setDoc(userRef, payload);
-    } catch (error) {
-      console.error('Error creating user profile:', error);
-      // If Firestore is unavailable, don't throw to avoid breaking auth flows; return payload locally
-      if (error && (error.code === 'unavailable' || (error.message && error.message.toLowerCase().includes('client is offline')))) {
-        console.warn('Firestore unavailable; returning local payload without persisting.');
-        return payload;
-      }
-      throw error;
-    }
+    await setDoc(userRef, payload);
     return payload;
-  }
 
-  return userSnap.data();
+  } catch (err) {
+    console.warn("Firestore unavailable → using local profile");
+    return fallbackProfile; // ✅ KEY FIX
+  }
 };
 
 export const getUserProfile = async (uid) => {
