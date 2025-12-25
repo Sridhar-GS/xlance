@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
-    "firebase": "^12.6.0",
+    "firebase": "^12.7.0",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.344.0",
     "motion": "^12.23.24",

@@ -1,65 +1,52 @@
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 export const createUserProfile = async (user, extraData = {}) => {
-  if (!user || !user.uid) return null;
+  if (!user?.uid) return null;
 
-  const userRef = doc(db, 'users', user.uid);
+  const ref = doc(db, "users", user.uid);
 
-  const fallbackProfile = {
+  const profile = {
     uid: user.uid,
     name: user.displayName || extraData.name || "",
     email: user.email || "",
     photoURL: user.photoURL || null,
     role: [],
-    onboardingCompleted: false,
+    onboarded: false,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   };
 
   try {
-    const snap = await getDoc(userRef);
+    const snap = await getDoc(ref);
     if (snap.exists()) return snap.data();
-
-    const payload = {
-      ...fallbackProfile,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-
-    await setDoc(userRef, payload);
-    return payload;
-
+    await setDoc(ref, profile);
+    return profile;
   } catch (err) {
-    console.warn("Firestore unavailable → using local profile");
-    return fallbackProfile; // ✅ KEY FIX
+    console.warn("Firestore unavailable, using local profile");
+    return profile;
   }
 };
 
 export const getUserProfile = async (uid) => {
   if (!uid) return null;
-  const userRef = doc(db, 'users', uid);
   try {
-    const userSnap = await getDoc(userRef);
-    return userSnap.exists() ? userSnap.data() : null;
-  } catch (err) {
-    console.warn('getUserProfile failed (possibly offline):', err && err.message ? err.message : err);
+    const snap = await getDoc(doc(db, "users", uid));
+    return snap.exists() ? snap.data() : null;
+  } catch {
     return null;
   }
 };
 
 export const updateUserProfile = async (uid, data) => {
-  if (!uid) return null;
-  const userRef = doc(db, 'users', uid);
-  const payload = { ...data, updatedAt: serverTimestamp() };
+  if (!uid) return false;
   try {
-    await updateDoc(userRef, payload);
+    await updateDoc(doc(db, "users", uid), {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
     return true;
-  } catch (err) {
-    console.error('Error updating user profile:', err);
-    // If offline, log and return false instead of throwing to avoid breaking UI flows
-    if (err && (err.code === 'unavailable' || (err.message && err.message.toLowerCase().includes('client is offline')))) {
-      console.warn('Firestore unavailable; update skipped.');
-      return false;
-    }
-    throw err;
+  } catch {
+    return false;
   }
 };
