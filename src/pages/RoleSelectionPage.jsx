@@ -24,11 +24,11 @@ const RoleSelectionPage = () => {
     if (userProfile && userProfile.onboardingCompleted) {
       const roles = userProfile.role || [];
       if (roles.includes("freelancer") && !roles.includes("client")) {
-        navigate("/freelancer/dashboard", { replace: true });
+        navigate("/dashboard/freelancer", { replace: true });
       } else if (roles.includes("client") && !roles.includes("freelancer")) {
-        navigate("/client/dashboard", { replace: true });
+        navigate("/dashboard/client", { replace: true });
       } else if (roles.includes("client") && roles.includes("freelancer")) {
-        navigate("/freelancer/dashboard", { replace: true });
+        navigate("/dashboard/freelancer", { replace: true });
       }
     }
   }, [userProfile, navigate]);

@@ -95,6 +95,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         userProfile,
+        setUserProfile,
         authLoading,
         profileLoading,
         signUp,

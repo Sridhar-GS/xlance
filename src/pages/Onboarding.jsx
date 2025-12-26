@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { updateUserProfile } from "../services/user_services";
 
 const Onboarding = () => {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, setUserProfile } = useAuth();
   const navigate = useNavigate();
 
   const [roleChoice, setRoleChoice] = useState("");
@@ -30,9 +30,9 @@ const Onboarding = () => {
     if (userProfile.onboarded) {
       const roles = userProfile.role || [];
       if (roles.includes("client") && !roles.includes("freelancer")) {
-        navigate("/client/dashboard", { replace: true });
+        navigate("/dashboard/client", { replace: true });
       } else {
-        navigate("/freelancer/dashboard", { replace: true });
+        navigate("/dashboard/freelancer", { replace: true });
       }
     }
   }, [user, userProfile, navigate]);
@@ -82,14 +82,21 @@ const Onboarding = () => {
     }
 
     try {
+      // 🔥 UPDATE LOCAL STATE IMMEDIATELY so ProtectedRoute sees onboarded=true
+      setUserProfile((prev) => ({
+        ...prev,
+        ...payload,
+      }));
+      localStorage.setItem("xlance_profile", JSON.stringify({ ...userProfile, ...payload }));
+
       // 🔥 DO NOT BLOCK UI ON FIRESTORE
       updateUserProfile(user.uid, payload).catch(() => {});
 
       // 🔥 NAVIGATE IMMEDIATELY
       if (rolesArr.length === 1 && rolesArr[0] === "client") {
-        navigate("/client/dashboard", { replace: true });
+        navigate("/dashboard/client", { replace: true });
       } else {
-        navigate("/freelancer/dashboard", { replace: true });
+        navigate("/dashboard/freelancer", { replace: true });
       }
     } catch (err) {
       console.error("Onboarding save failed:", err);

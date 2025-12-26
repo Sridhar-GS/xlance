@@ -16,6 +16,11 @@ import SignUpPage from "./pages/SignUpPage";
 import SignInPage from "./pages/SignInPage";
 import Onboarding from "./pages/Onboarding";
 import DashboardPage from "./pages/DashboardPage";
+import FindWorkPage from "./pages/FindWorkPage";
+import MyProjects from "./pages/MyProjects";
+import Messages from "./pages/Messages";
+import Reports from "./pages/Reports";
+import CreateProfilePage from "./pages/CreateProfilePage";
 
 function AppLayout() {
   const location = useLocation();
@@ -53,6 +58,51 @@ function AppLayout() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/find-work"
+            element={
+              <ProtectedRoute>
+                <FindWorkPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <MyProjects />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <Messages />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile/create"
+            element={
+              <ProtectedRoute>
+                <CreateProfilePage />
               </ProtectedRoute>
             }
           />
