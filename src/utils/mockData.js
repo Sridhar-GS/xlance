@@ -218,3 +218,53 @@ export const mockProjects = [
     ]
   }
 ];
+
+export const mockChats = [
+  {
+    id: 'c1',
+    userId: 'u2',
+    name: 'Sarah Jenkins',
+    avatar: 'SJ',
+    status: 'online',
+    lastMessage: 'The new designs look fantastic! When can we review?',
+    time: '10:42 AM',
+    unread: 2
+  },
+  {
+    id: 'c2',
+    userId: 'u3',
+    name: 'Michael Chen',
+    avatar: 'MC',
+    status: 'offline',
+    lastMessage: 'Payment has been released for the first milestone.',
+    time: 'Yesterday',
+    unread: 0
+  },
+  {
+    id: 'c3',
+    userId: 'u4',
+    name: 'David Wilson',
+    avatar: 'DW',
+    status: 'online',
+    lastMessage: 'Perfect, thanks for the update.',
+    time: 'Tue',
+    unread: 0
+  }
+];
+
+export const mockChatMessages = {
+  c1: [
+    { id: 'm1', fromMe: false, text: 'Hi! Just checking in on the progress.', time: '10:30 AM' },
+    { id: 'm2', fromMe: true, text: 'Hey Sarah! Making good progress. I will have a preview ready by EOD.', time: '10:35 AM' },
+    { id: 'm3', fromMe: false, text: 'That is great news.', time: '10:40 AM' },
+    { id: 'm4', fromMe: false, text: 'The new designs look fantastic! When can we review?', time: '10:42 AM' }
+  ],
+  c2: [
+    { id: 'm1', fromMe: true, text: 'Milestone 1 is complete. Please check the dashboard.', time: 'Yesterday' },
+    { id: 'm2', fromMe: false, text: 'Payment has been released for the first milestone.', time: 'Yesterday' }
+  ],
+  c3: [
+    { id: 'm1', fromMe: true, text: 'Here are the final assets.', time: 'Tue' },
+    { id: 'm2', fromMe: false, text: 'Perfect, thanks for the update.', time: 'Tue' }
+  ]
+};
