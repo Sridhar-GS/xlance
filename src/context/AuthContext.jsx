@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
 
       return result.user;
     } catch (err) {
-      setError(err.message);
+      // setError(err.message); // Disable global error to allow local handling
       throw err;
     } finally {
       setAuthLoading(false);

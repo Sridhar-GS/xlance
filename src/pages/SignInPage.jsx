@@ -17,15 +17,25 @@ const SignInPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   usePageTitle("Sign In");
-  const { signIn, signInWithGoogle, user } = useAuth();
+  const { signIn, signInWithGoogle, user, userProfile } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated, BUT skip if checking Google Strictness
+  const isGoogleSigningIn = React.useRef(false);
+
   React.useEffect(() => {
-    if (user) {
-      navigate("/onboarding", { replace: true });
+    if (user && userProfile && !isGoogleSigningIn.current) {
+      if (userProfile.onboarded) {
+        // If already onboarded, go to specific dashboard
+        const role = userProfile.role === "client" ? "client" : "freelancer";
+        navigate(`/dashboard/${role}`, { replace: true });
+      } else {
+        navigate("/onboarding", { replace: true });
+      }
+    } else if (user && !userProfile) {
+      // User logged in but profile loading... wait.
     }
-  }, [user, navigate]);
+  }, [user, userProfile, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,10 +65,26 @@ const SignInPage = () => {
     setIsLoading(true);
     try {
       await signIn(formData.email, formData.password);
-      navigate("/onboarding", { replace: true });
+      // Navigation handled by useEffect
     } catch (err) {
-      setErrors({ submit: err?.message || "Invalid email or password" });
-    } finally {
+      console.error("Sign in error:", err.code, err.message);
+
+      const errorCode = err.code;
+      // Map specific errors to fields
+      if (errorCode === "auth/user-not-found" || errorCode === "auth/invalid-email") {
+        setErrors({ email: "Account not found. Please Sign Up." });
+      } else if (errorCode === "auth/wrong-password") {
+        setErrors({ password: "Incorrect password" });
+      } else if (errorCode === "auth/invalid-credential" || errorCode === "auth/invalid-login-credentials") {
+        // Generic security error from Firebase (covers both wrong password & user not found)
+        setErrors({ email: "Invalid email or password" });
+      } else if (errorCode === "auth/too-many-requests") {
+        setErrors({ submit: "Too many attempts. Reset password or try later." });
+      } else {
+        // Fallback: If it's a login error, it's usually related to the email/account
+        setErrors({ email: err?.message || "Sign in failed" });
+      }
+
       setIsLoading(false);
     }
   };
@@ -66,10 +92,45 @@ const SignInPage = () => {
   // ✅ GOOGLE SIGN IN
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogle();
-      navigate("/onboarding", { replace: true });
+      setIsLoading(true);
+      isGoogleSigningIn.current = true; // Block auto-redirect
+
+      // Use a custom import here if needed, or rely on AuthContext's return
+      const { user: signedInUser, isNewUser } = await signInWithGoogle();
+
+      // STRICT CHECK: If this is a NEW user, we DO NOT allow them on Sign In page.
+      if (isNewUser) {
+        // 1. Delete the accidentally created auth account
+        await signedInUser.delete().catch(() => {
+          // If delete fails (requires re-auth), at least sign out
+          console.warn("User delete failed, signing out instead");
+        });
+
+        // 2. Ensure they are signed out (if delete didn't auto-do it)
+        await import("../services/authService").then(m => m.authService.logout());
+
+        // 3. Show Error
+        setErrors({
+          submit: (
+            <div className="flex flex-col gap-1 items-center">
+              <span>Account not found.</span>
+              <Link to="/auth/signup" className="underline font-black hover:text-red-800">Please Join First</Link>
+            </div>
+          )
+        });
+
+        setIsLoading(false);
+        isGoogleSigningIn.current = false; // Reset but stay on page (user is null now)
+        return;
+      }
+
+      // If existing user, allow effect to redirect
+      isGoogleSigningIn.current = false;
+      // navigate removed, useEffect handles it
     } catch (err) {
       setErrors({ submit: err?.message || "Google sign-in failed" });
+      setIsLoading(false);
+      isGoogleSigningIn.current = false;
     }
   };
 
@@ -116,6 +177,8 @@ const SignInPage = () => {
             {/* 🔥 GOOGLE SIGN IN */}
             <Button
               type="button"
+              isLoading={isLoading}
+              disabled={isLoading}
               onClick={handleGoogleSignIn}
               variant="outline"
               className="w-full flex gap-3 mb-6 bg-white/60 border-white/80 h-14 rounded-2xl font-bold transition-all hover:bg-white hover:shadow-md"
