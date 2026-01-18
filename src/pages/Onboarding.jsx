@@ -129,11 +129,10 @@ const Onboarding = () => {
           )}
 
           {/* ROLE SELECTION */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
             {[
               { id: "client", label: "Hire Talent", desc: "Build your dream team", icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-              { id: "freelancer", label: "Find Work", desc: "Scale your services", icon: Laptop, color: 'text-primary-600', bg: 'bg-primary-50' },
-              { id: "both", label: "Both", desc: "Complete ecosystem", icon: Rocket, color: 'text-orange-600', bg: 'bg-orange-50' }
+              { id: "freelancer", label: "Find Work", desc: "Scale your services", icon: Laptop, color: 'text-primary-600', bg: 'bg-primary-50' }
             ].map((r) => {
               const Icon = r.icon;
               const isSelected = roleChoice === r.id;
