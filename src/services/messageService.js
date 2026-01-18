@@ -21,6 +21,8 @@ export const messageService = {
             // Check if conversation already exists
             // Note: This query assumes a specific structure. 
             // A robust way often uses a composite ID like `minId_maxId` to force uniqueness.
+            // Semantic ID: {UserID_A}_{UserID_B} (Sorted to be deterministic)
+            // This guarantees a single, unique path for any pair of users
             const chatId = [currentUserId, otherUserId].sort().join('_');
             const docRef = doc(db, 'conversations', chatId);
             const docSnap = await getDoc(docRef);
@@ -58,6 +60,7 @@ export const messageService = {
     },
 
     // 2. Subscribe to user's conversations list
+    // 2. Subscribe to user's conversations list
     subscribeToConversations: (userId, callback) => {
         const q = query(
             collection(db, 'conversations'),
@@ -76,6 +79,7 @@ export const messageService = {
                     return doc.data().participantDetails?.[otherId] || { name: 'User', avatar: '' };
                 }
             }));
+
             callback(convs);
         });
     },

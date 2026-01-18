@@ -1,24 +1,17 @@
 import { db } from './firebaseConfig';
-import { doc, setDoc, getDoc, updateDoc, arrayUnion, increment, runTransaction, collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, arrayUnion, increment, runTransaction, collection, query, orderBy, getDocs, onSnapshot } from 'firebase/firestore';
 
 export const userService = {
     // Create User Profile
     createUserProfile: async (uid, data) => {
         try {
             const userRef = doc(db, 'users', uid);
+            const roles = Array.isArray(data.role) ? data.role : [data.role];
 
-            // Default initial profile structure
-            const newProfile = {
-                name: data.name || '',
-                email: data.email || "",// place the Gamil id here
-                role: data.role || [],
-                skills: [],
-                bio: "",
-                onboardingCompleted: false,
-                onboarded: false,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                connects: {
+            // Initialize connects ONLY for freelancers
+            let connectsData = null;
+            if (roles.includes('freelancer')) {
+                connectsData = {
                     available: 50, // Starter pack
                     totalEarned: 50,
                     lastRefillDate: new Date().toISOString(),
@@ -29,7 +22,21 @@ export const userService = {
                         reason: 'Welcome Starter Pack',
                         date: new Date().toISOString()
                     }]
-                },
+                };
+            }
+
+            // Default initial profile structure
+            const newProfile = {
+                name: data.name || '',
+                email: data.email || "",
+                role: roles,
+                skills: [],
+                bio: "",
+                onboardingCompleted: false,
+                onboarded: false,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                connects: connectsData, // Will be null for clients
                 ...data // Merge provided data
             };
 
@@ -50,13 +57,25 @@ export const userService = {
             if (docSnap.exists()) {
                 return docSnap.data();
             } else {
-                // Return null if no profile exists; handling logic lies in the caller (e.g., AuthContext)
                 return null;
             }
         } catch (error) {
             console.error("Error fetching user profile:", error);
             throw error;
         }
+    },
+    // Subscribe to User Profile
+    subscribeToUserProfile: (uid, callback) => {
+        const userRef = doc(db, 'users', uid);
+        return onSnapshot(userRef, (docSnap) => {
+            if (docSnap.exists()) {
+                callback(docSnap.data());
+            } else {
+                callback(null);
+            }
+        }, (error) => {
+            console.error("Error subscribing to user profile:", error);
+        });
     },
 
     // Update User Profile with Custom ID Generation
@@ -87,11 +106,12 @@ export const userService = {
                     let didUpdateCounters = false;
 
                     // 2. Handle Roles & ID Generation
-                    // Handle case where role might be wrapped or just a string
                     const rawRoles = data.role || [];
                     const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
 
                     console.log("Roles detected:", roles);
+
+                    let connectsToUpdate = null; // Track new connects to sync to main doc
 
                     // --- FREELANCER HANDLING ---
                     if (roles.includes('freelancer')) {
@@ -106,18 +126,40 @@ export const userService = {
                         // Create Directory Entry: users/directory/freelancers/{F-ID}
                         const dirRef = doc(db, 'users', 'directory', 'freelancers', newId);
 
-                        // Sanitize payload to avoid undefined values
+                        // Fetch existing data to properly populate directory
+                        const userDoc = await transaction.get(userRef);
+                        const userData = userDoc.exists() ? userDoc.data() : {};
+
+                        // initialize connects if missing
+                        let connectsData = userData.connects;
+                        if (!connectsData) {
+                            connectsData = {
+                                available: 50,
+                                totalEarned: 50,
+                                lastRefillDate: new Date().toISOString(),
+                                history: [{
+                                    id: Date.now(),
+                                    type: 'earned',
+                                    amount: 50,
+                                    reason: 'Welcome Starter Pack',
+                                    date: new Date().toISOString()
+                                }]
+                            };
+                            connectsToUpdate = connectsData; // Mark for update on main doc
+                        }
+
+                        // Sanitize payload
                         const profilePayload = {
                             uid: uid,
                             publicProfile: true,
-                            name: data.name || "",
-                            email: data.email || "",
+                            name: data.name || userData.name || "",
+                            email: data.email || userData.email || "",
                             role: roles,
                             createdAt: new Date().toISOString(),
+                            connects: connectsData, // Ensure connects carry over
                             ...updateData
                         };
 
-                        // Ensure specific profile data is present
                         if (data.freelancerProfile) {
                             profilePayload.freelancerProfile = data.freelancerProfile;
                         }
@@ -138,11 +180,14 @@ export const userService = {
                         // Create Directory Entry: users/directory/clients/{C-ID}
                         const dirRef = doc(db, 'users', 'directory', 'clients', newId);
 
+                        const userDoc = await transaction.get(userRef);
+                        const userData = userDoc.exists() ? userDoc.data() : {};
+
                         const profilePayload = {
                             uid: uid,
                             publicProfile: true,
-                            name: data.name || "",
-                            email: data.email || "",
+                            name: data.name || userData.name || "",
+                            email: data.email || userData.email || "",
                             role: roles,
                             createdAt: new Date().toISOString(),
                             ...updateData
@@ -157,17 +202,21 @@ export const userService = {
 
                     // 3. Commit Writes
                     if (didUpdateCounters) {
-                        transaction.set(counterRef, counts); // Create or Update counters
+                        transaction.set(counterRef, counts);
                     }
 
-                    // 🔥 OPTIMIZATION: Only save POINTERS to the main "Random ID" doc
-                    // We do not save the full heavy profile here anymore.
+                    // 🔥 OPTIMIZATION: Only save POINTERS on main doc if IDs generated
                     const pointerData = {
                         onboarded: true,
                         onboardingCompleted: true,
                         role: roles,
                         updatedAt: new Date().toISOString()
                     };
+
+                    // If we initialized connects, save them to the main profile too
+                    if (connectsToUpdate) {
+                        pointerData.connects = connectsToUpdate;
+                    }
 
                     if (updateData.freelancerId) pointerData.freelancerId = updateData.freelancerId;
                     if (updateData.clientId) pointerData.clientId = updateData.clientId;
@@ -176,8 +225,6 @@ export const userService = {
                 });
 
                 console.log("Transaction committed successfully.");
-
-                // Return the updated data (fetching again is safest to get what transaction wrote)
                 const finalSnap = await getDoc(userRef);
                 return finalSnap.data();
 
@@ -225,7 +272,6 @@ export const userService = {
                 throw new Error('Insufficient connects balance');
             }
 
-            // Prepare the history item
             const historyItem = {
                 id: Date.now(),
                 type: 'spent',
@@ -234,13 +280,19 @@ export const userService = {
                 date: new Date().toISOString()
             };
 
-            // Perform update
-            // complex object updates in firestore can be tricky with dot notation for nested fields
-            // but 'connects.available' works if 'connects' map exists.
-            await updateDoc(userRef, {
+            const updates = {
                 'connects.available': increment(-amount),
                 'connects.history': arrayUnion(historyItem)
-            });
+            };
+
+            await updateDoc(userRef, updates);
+
+            // SYNC: Update Directory if freelancerId exists
+            if (userData.freelancerId) {
+                const dirRef = doc(db, 'users', 'directory', 'freelancers', userData.freelancerId);
+                // We use updateDoc safely assuming the directory doc exists (created efficiently during onboarding)
+                await updateDoc(dirRef, updates).catch(err => console.warn("Directory sync failed (non-critical):", err));
+            }
 
             const updatedSnap = await getDoc(userRef);
             return updatedSnap.data().connects;
@@ -255,6 +307,12 @@ export const userService = {
     addConnects: async (uid, amount, reason) => {
         try {
             const userRef = doc(db, 'users', uid);
+            // Fetch first to get Freelancer ID for sync
+            const userSnap = await getDoc(userRef);
+
+            // If user doesn't exist, can't add connects
+            if (!userSnap.exists()) return null;
+            const userData = userSnap.data();
 
             const historyItem = {
                 id: Date.now(),
@@ -264,11 +322,19 @@ export const userService = {
                 date: new Date().toISOString()
             };
 
-            await updateDoc(userRef, {
+            const updates = {
                 'connects.available': increment(amount),
                 'connects.totalEarned': increment(amount),
                 'connects.history': arrayUnion(historyItem)
-            });
+            };
+
+            await updateDoc(userRef, updates);
+
+            // SYNC: Update Directory if freelancerId exists
+            if (userData.freelancerId) {
+                const dirRef = doc(db, 'users', 'directory', 'freelancers', userData.freelancerId);
+                await updateDoc(dirRef, updates).catch(err => console.warn("Directory sync failed (non-critical):", err));
+            }
 
             const updatedSnap = await getDoc(userRef);
             return updatedSnap.data().connects;

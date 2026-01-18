@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { JobsProvider } from "./context/JobsContext";
@@ -28,7 +29,7 @@ import ClientTalentPage from "./pages/ClientTalentPage";
 
 function AppLayout() {
   const { authLoading, error, user } = useAuth(); // Get user
-
+  const location = useLocation();
 
 
 
@@ -54,7 +55,7 @@ function AppLayout() {
         </div>
       )}
 
-      <Navbar />
+      {location.pathname !== '/onboarding' && <Navbar />}
 
       <main className="flex-1">
         <Routes>

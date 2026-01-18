@@ -10,10 +10,12 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 const JobDetailsPage = () => {
     const { jobId } = useParams();
     const navigate = useNavigate();
-    const { user, userProfile } = useAuth();
+    const { user, userProfile, authLoading } = useAuth();
 
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
+    const viewIncremented = React.useRef(false); // Track if view counted
+
     const [proposalForm, setProposalForm] = useState({
         bidAmount: '',
         coverLetter: ''
@@ -23,10 +25,12 @@ const JobDetailsPage = () => {
 
     useEffect(() => {
         const fetchJob = async () => {
+            viewIncremented.current = false; // Reset tracking on new job fetch
             try {
                 const data = await jobService.getJobById(jobId);
                 if (data) {
                     setJob(data);
+                    // View increment moved to separate effect to handle auth state
                 } else {
                     setError("Job not found");
                 }
@@ -39,6 +43,17 @@ const JobDetailsPage = () => {
         };
         fetchJob();
     }, [jobId]);
+
+    // Handle View Increment
+    useEffect(() => {
+        if (!loading && !authLoading && job && !viewIncremented.current) {
+            const isOwner = user?.uid && user.uid === job.clientId;
+            if (!isOwner) {
+                jobService.incrementJobView(jobId);
+                viewIncremented.current = true;
+            }
+        }
+    }, [job, user, authLoading, loading, jobId]);
 
     const handleSubmitProposal = async (e) => {
         e.preventDefault();
@@ -55,7 +70,9 @@ const JobDetailsPage = () => {
                 coverLetter: proposalForm.coverLetter,
                 freelancerName: user.displayName || userProfile?.name || "Freelancer",
                 jobTitle: job.title,
-                clientName: job.client?.name || "Client"
+                clientName: job.client?.name || "Client",
+                clientUserId: job.clientId,
+                clientAvatar: job.client?.avatar || ""
             });
             navigate('/dashboard/freelancer');
         } catch (err) {
@@ -101,8 +118,8 @@ const JobDetailsPage = () => {
                         </div>
                     </Card>
 
-                    {/* Proposal Form - Only for Freelancers */}
-                    {userProfile?.role?.includes('freelancer') && user.uid !== job.clientId && (
+                    {/* Proposal Form - Only for Freelancers and Open Jobs (Self-Applying Enabled for Testing) */}
+                    {userProfile?.role?.includes('freelancer') && job.status === 'open' && (
                         <Card className="p-4 md:p-8">
                             <h2 className="text-xl font-bold mb-4">Submit a Proposal</h2>
                             <form onSubmit={handleSubmitProposal} className="space-y-4">

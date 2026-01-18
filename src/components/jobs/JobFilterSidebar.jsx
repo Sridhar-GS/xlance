@@ -47,7 +47,7 @@ const Checkbox = ({ label, count }) => (
     </label>
 );
 
-const JobFilterSidebar = () => {
+const JobFilterSidebar = ({ counts = {} }) => {
     return (
         <aside className="w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
@@ -60,22 +60,22 @@ const JobFilterSidebar = () => {
             </div>
 
             <FilterSection title="Category" defaultOpen={true}>
-                <Checkbox label="Development & IT" count={120} />
-                <Checkbox label="Design & Creative" count={45} />
-                <Checkbox label="Sales & Marketing" count={32} />
-                <Checkbox label="Writing" count={18} />
-                <Checkbox label="AI Services" count={8} />
+                <Checkbox label="Development & IT" count={counts.category?.['Development & IT'] || 0} />
+                <Checkbox label="Design & Creative" count={counts.category?.['Design & Creative'] || 0} />
+                <Checkbox label="Sales & Marketing" count={counts.category?.['Sales & Marketing'] || 0} />
+                <Checkbox label="Writing" count={counts.category?.['Writing'] || 0} />
+                <Checkbox label="AI Services" count={counts.category?.['AI Services'] || 0} />
             </FilterSection>
 
             <FilterSection title="Job Type">
-                <Checkbox label="Hourly" count={86} />
-                <Checkbox label="Fixed-Price" count={112} />
+                <Checkbox label="Hourly" count={counts.jobType?.['hourly'] || 0} />
+                <Checkbox label="Fixed-Price" count={counts.jobType?.['fixed-price'] || 0} />
             </FilterSection>
 
             <FilterSection title="Experience Level">
-                <Checkbox label="Entry Level" count={40} />
-                <Checkbox label="Intermediate" count={95} />
-                <Checkbox label="Expert" count={28} />
+                <Checkbox label="Entry Level" count={counts.level?.['entry'] || 0} />
+                <Checkbox label="Intermediate" count={counts.level?.['intermediate'] || 0} />
+                <Checkbox label="Expert" count={counts.level?.['expert'] || 0} />
             </FilterSection>
 
             <FilterSection title="Budget">
@@ -96,10 +96,10 @@ const JobFilterSidebar = () => {
             </FilterSection>
 
             <FilterSection title="Project Length">
-                <Checkbox label="< 1 month" />
-                <Checkbox label="1 to 3 months" />
-                <Checkbox label="3 to 6 months" />
-                <Checkbox label="> 6 months" />
+                <Checkbox label="< 1 month" count={counts.duration?.['less_1_month'] || 0} />
+                <Checkbox label="1 to 3 months" count={counts.duration?.['1_3_months'] || 0} />
+                <Checkbox label="3 to 6 months" count={counts.duration?.['3_6_months'] || 0} />
+                <Checkbox label="> 6 months" count={counts.duration?.['more_6_months'] || 0} />
             </FilterSection>
         </aside>
     );

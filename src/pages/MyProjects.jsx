@@ -239,9 +239,9 @@ const ProjectMissionCard = ({ project, onDetailsClick, onMenuAction, onMessageCl
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -4, shadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-      className="group relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:border-primary-100 transition-all duration-300 transform-gpu"
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      className="group relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:border-primary-100 transition-colors duration-300"
     >
       {/* Glass / Gradient decorative top */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-500 via-purple-500 to-pink-500 rounded-t-2xl opacity-80" />
@@ -282,6 +282,10 @@ const ProjectMissionCard = ({ project, onDetailsClick, onMenuAction, onMessageCl
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onMenuAction('upload', project); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors flex items-center gap-2">
                   <Paperclip size={16} /> Upload Deliverable
+                </button>
+                <div className="h-px bg-gray-100 my-1" />
+                <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onMenuAction('delete', project); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                  <X size={16} /> Delete Project
                 </button>
               </motion.div>
             )}
@@ -347,6 +351,7 @@ const ProjectMissionCard = ({ project, onDetailsClick, onMenuAction, onMessageCl
 // --- Main Page Component ---
 
 const MyProjects = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [filter, setFilter] = useState('All');
   const [projects, setProjects] = useState([]);
@@ -363,13 +368,7 @@ const MyProjects = () => {
         try {
           const data = await projectService.getProjectsByFreelancer(user.uid);
           // If no projects found, seed a demo project for better initial experience
-          if (data.length === 0) {
-            const newId = await projectService.seedDemoProject(user.uid);
-            const seeded = await projectService.getProjectsByFreelancer(user.uid);
-            setProjects(seeded);
-          } else {
-            setProjects(data);
-          }
+          setProjects(data);
         } catch (error) {
           console.error("Error fetching projects:", error);
         } finally {
@@ -481,11 +480,49 @@ const MyProjects = () => {
   };
 
   // 3. Status Action Handler (from Dropdown)
-  const handleMenuAction = (action, project) => {
+  const handleMenuAction = async (action, project) => {
+    if (action === 'delete') {
+      if (window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
+        try {
+          await projectService.deleteProject(project.id);
+          setProjects(prev => prev.filter(p => p.id !== project.id));
+        } catch (err) {
+          console.error("Failed to delete project:", err);
+          alert("Failed to delete project");
+        }
+      }
+      return;
+    }
     setModalData(project);
     setActiveModal(action);
   };
 
+
+  // 4. Message Handler
+  const handleMessageClick = async (project) => {
+    // Determine the other user ID (client)
+    // Project service uses `clientUserId` or `clientId` depending on source
+    // proposalService.acceptProposal sets `clientUserId`.
+    const otherId = project.clientUserId || project.clientId;
+
+    if (!otherId) {
+      alert("Cannot connect to client. ID missing.");
+      return;
+    }
+
+    try {
+      const conv = await messageService.startConversation(
+        user.uid,
+        otherId,
+        project.clientName || 'Client',
+        project.clientAvatar || ''
+      );
+      navigate('/messages', { state: { conversationId: conv.id } });
+    } catch (err) {
+      console.error("Chat Error:", err);
+      alert("Failed to open chat.");
+    }
+  };
 
   return (
     <PageTransition>
@@ -494,7 +531,7 @@ const MyProjects = () => {
           {/* Header */}
           <header className="mb-10">
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Mission Control</h1>
-            <p className="text-gray-500 mt-2 text-lg">Manage your active contracts and deliverables.</p>
+            <p className="text-gray-500 mt-2 text-lg">Manage your active contracts and delivers.</p>
           </header>
 
           {/* Filter Bar */}
@@ -529,6 +566,7 @@ const MyProjects = () => {
                       project={project}
                       onDetailsClick={setSelectedProject}
                       onMenuAction={handleMenuAction}
+                      onMessageClick={handleMessageClick}
                     />
                   ))}
 

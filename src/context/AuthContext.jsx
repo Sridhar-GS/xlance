@@ -14,15 +14,22 @@ export const AuthProvider = ({ children }) => {
     return await authService.checkEmailExists(email);
   };
 
-  const loadProfile = useCallback(async (uid) => {
-    try {
-      const profile = await userService.getUserProfile(uid);
-      setUserProfile(profile);
-    } catch (err) {
-      console.error("Error loading user profile:", err);
-      setError("Failed to load user profile");
+  useEffect(() => {
+    let unsubscribeProfile = null;
+
+    if (user?.uid) {
+      // Real-time profile subscription
+      unsubscribeProfile = userService.subscribeToUserProfile(user.uid, (profile) => {
+        setUserProfile(profile);
+      });
+    } else {
+      setUserProfile(null);
     }
-  }, []);
+
+    return () => {
+      if (unsubscribeProfile) unsubscribeProfile();
+    };
+  }, [user]);
 
   useEffect(() => {
     // Subscribe to auth state changes
@@ -30,10 +37,9 @@ export const AuthProvider = ({ children }) => {
       try {
         if (firebaseUser) {
           setUser(firebaseUser);
-          await loadProfile(firebaseUser.uid);
+          // Profile is now handled by the separate useEffect above
         } else {
           setUser(null);
-          setUserProfile(null);
         }
       } catch (err) {
         console.error("Auth state change error:", err);
@@ -42,23 +48,18 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
-    // Safety timeout: If Firebase takes too long (e.g. network issue), stopped loading
     const safetyTimeout = setTimeout(() => {
       setAuthLoading((loading) => {
-        if (loading) {
-          console.warn("Auth check timed out, forcing app load.");
-          return false;
-        }
+        if (loading) return false;
         return loading;
       });
     }, 4000);
 
-    // Cleanup subscription
     return () => {
       unsubscribe();
       clearTimeout(safetyTimeout);
     };
-  }, [loadProfile]);
+  }, []);
 
   const signUp = async (email, password, name) => {
     try {
@@ -93,8 +94,7 @@ export const AuthProvider = ({ children }) => {
       // OPTIMIZATION: Set user immediately
       setUser(result.user);
 
-      // Load profile in background
-      loadProfile(result.user.uid);
+      // (Subscription effect will load profile)
 
       return result.user;
     } catch (err) {
@@ -107,9 +107,6 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithGoogle = async () => {
     try {
-      // Do NOT set global authLoading(true) here. It unmounts the UI and destroys verification states.
-      // setAuthLoading(true); 
-
       const result = await authService.loginWithGoogle();
 
       // Check if new user
@@ -118,19 +115,16 @@ export const AuthProvider = ({ children }) => {
 
       setUser(result.user);
 
-      // Handle profile check/creation (Awaited to avoid race condition with strict Sign-Up logout)
+      // Handle profile creation if needed
       try {
         const profile = await userService.getUserProfile(result.user.uid);
         if (!profile) {
-          const newProfile = await userService.createUserProfile(result.user.uid, {
+          await userService.createUserProfile(result.user.uid, {
             email: result.user.email,
             name: result.user.displayName,
             onboarded: false,
             role: []
           });
-          setUserProfile(newProfile);
-        } else {
-          setUserProfile(profile);
         }
       } catch (err) {
         console.error("Profile sync failed:", err);
@@ -169,7 +163,7 @@ export const AuthProvider = ({ children }) => {
     signInWithGoogle,
     signOut,
     checkEmailExists,
-    refreshProfile: () => user ? loadProfile(user.uid) : Promise.resolve()
+    refreshProfile: () => Promise.resolve() // No-op with real-time sync
   };
 
   return (

@@ -1,17 +1,23 @@
 import { db } from './firebaseConfig';
-import { collection, addDoc, getDocs, doc, getDoc, query, where, orderBy, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, getDoc, query, where, orderBy, serverTimestamp, onSnapshot, increment, updateDoc, setDoc } from 'firebase/firestore';
 
 export const jobService = {
   // Create a new job post
   createJob: async (jobData) => {
     try {
-      const docRef = await addDoc(collection(db, 'jobs'), {
+      // Semantic ID: JOB_{ClientId}_{Timestamp} (Organized by creator)
+      const jobId = `JOB_${jobData.clientId}_${Date.now()}`;
+      const docRef = doc(db, 'jobs', jobId);
+
+      await setDoc(docRef, {
         ...jobData,
+        id: jobId,
         createdAt: serverTimestamp(),
         status: 'open',
-        proposalsCount: 0
+        proposalsCount: 0,
+        views: 0
       });
-      return docRef.id;
+      return jobId;
     } catch (error) {
       console.error("Error creating job:", error);
       throw error;
@@ -71,15 +77,18 @@ export const jobService = {
     try {
       const q = query(
         collection(db, 'jobs'),
-        where('clientId', '==', clientId),
-        orderBy('createdAt', 'desc')
+        where('clientId', '==', clientId)
       );
 
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      })).sort((a, b) => {
+        const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return dateB - dateA;
+      });
     } catch (error) {
       console.error("Error fetching client jobs:", error);
       return [];
@@ -103,6 +112,19 @@ export const jobService = {
     } catch (error) {
       console.error("Error getting job by ID:", error);
       throw error;
+    }
+  },
+
+  // Increment view count
+  incrementJobView: async (jobId) => {
+    try {
+      const jobRef = doc(db, 'jobs', jobId);
+      await updateDoc(jobRef, {
+        views: increment(1)
+      });
+    } catch (error) {
+      console.error("Error incrementing view count:", error);
+      // Silent fail is fine for analytics
     }
   }
 };

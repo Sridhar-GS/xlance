@@ -4,6 +4,7 @@ import { Card, Button } from '../common';
 import PageTransition from '../common/PageTransition';
 import { useAuth } from '../../context/AuthContext';
 import { proposalService } from '../../services/proposalService';
+import { jobService } from '../../services/jobService';
 import { Link, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
@@ -440,8 +441,8 @@ const FreelancerDashboard = () => {
                         <div>
                           <div className="flex justify-between items-start mb-4">
                             <span className={`px-2.5 py-1 text-[10px] font-black uppercase rounded-lg tracking-[0.1em] border ${(job.matchScore || 0) > 0
-                                ? 'bg-primary-500/10 text-primary-700 border-primary-500/10'
-                                : 'bg-gray-100 text-gray-500 border-gray-200'
+                              ? 'bg-primary-500/10 text-primary-700 border-primary-500/10'
+                              : 'bg-gray-100 text-gray-500 border-gray-200'
                               }`}>
                               {(job.matchScore || 0) > 0 ? 'Smart Match' : 'New Job'}
                             </span>

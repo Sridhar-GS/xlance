@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TrendingUp, Filter, X } from 'lucide-react'; // Import Trending icon
 import { motion, AnimatePresence } from 'framer-motion';
 import { useJobs } from '../context/JobsContext';
+import { useAuth } from '../context/AuthContext';
+import { jobService } from '../services/jobService';
 import PageTransition from '../components/common/PageTransition';
 import JobCard from '../components/jobs/JobCard';
 import JobFilterSidebar from '../components/jobs/JobFilterSidebar';
@@ -11,8 +13,68 @@ import JobDetailsDrawer from '../components/jobs/JobDetailsDrawer';
 
 export default function FindWorkPage() {
   const { jobs, loading } = useJobs();
+  const { user } = useAuth();
   const [selectedJob, setSelectedJob] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  const handleJobClick = (job) => {
+    setSelectedJob(job);
+    // Increment view logic (frontend trigger)
+    // Relaxed rules allow public update, so just check ownership if logged in
+    if (!user || user.uid !== job.clientId) {
+      jobService.incrementJobView(job.id);
+    }
+  };
+
+  // Compute dynamic filter counts
+  const jobCounts = useMemo(() => {
+    const counts = {
+      category: {},
+      jobType: {},
+      level: {},
+      duration: {}
+    };
+
+    jobs.forEach(job => {
+      // Category
+      if (job.category) {
+        counts.category[job.category] = (counts.category[job.category] || 0) + 1;
+        // Also normalization if needed, but assuming exact match with Sidebar labels for now
+      }
+
+      // Job Type (budgetType)
+      if (job.budgetType) {
+        const type = job.budgetType.toLowerCase();
+        // Map 'fixed' -> 'fixed-price' to match sidebar key expectations if any
+        const key = type === 'fixed' ? 'fixed-price' : type;
+        counts.jobType[key] = (counts.jobType[key] || 0) + 1;
+      }
+
+      // Experience Level
+      if (job.experienceLevel) {
+        const lvl = job.experienceLevel.toLowerCase();
+        let key = lvl;
+        if (lvl.includes('entry')) key = 'entry';
+        else if (lvl.includes('intermediate')) key = 'intermediate';
+        else if (lvl.includes('expert')) key = 'expert';
+        counts.level[key] = (counts.level[key] || 0) + 1;
+      }
+
+      // Duration
+      if (job.duration) {
+        const d = job.duration.toLowerCase();
+        let key = null;
+        if (d.includes('<') || d.includes('less') || d.includes('under')) key = 'less_1_month';
+        else if (d.includes('1 to 3')) key = '1_3_months';
+        else if (d.includes('3 to 6')) key = '3_6_months';
+        else if (d.includes('> 6') || d.includes('more')) key = 'more_6_months';
+
+        if (key) counts.duration[key] = (counts.duration[key] || 0) + 1;
+      }
+    });
+
+    return counts;
+  }, [jobs]);
 
   return (
     <PageTransition>
@@ -54,7 +116,7 @@ export default function FindWorkPage() {
                     <X size={24} />
                   </button>
                 </div>
-                <JobFilterSidebar />
+                <JobFilterSidebar counts={jobCounts} />
               </motion.div>
             </div>
           )}
@@ -65,7 +127,7 @@ export default function FindWorkPage() {
 
             {/* Left Sidebar - Filters */}
             <div className="w-full lg:w-1/4 hidden lg:block">
-              <JobFilterSidebar />
+              <JobFilterSidebar counts={jobCounts} />
             </div>
 
             {/* Right Content - Job Feed */}
@@ -113,7 +175,7 @@ export default function FindWorkPage() {
                   <JobCard
                     key={job.id}
                     job={job}
-                    onClick={() => setSelectedJob(job)}
+                    onClick={() => handleJobClick(job)}
                   />
                 ))}
               </div>

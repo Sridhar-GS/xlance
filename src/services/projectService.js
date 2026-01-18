@@ -1,5 +1,5 @@
 import { db } from './firebaseConfig';
-import { collection, addDoc, query, where, getDocs, orderBy, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
 
 export const projectService = {
     // Get active projects for a freelancer
@@ -7,19 +7,21 @@ export const projectService = {
         try {
             const q = query(
                 collection(db, 'projects'),
-                where('freelancerId', '==', freelancerId),
-                orderBy('updatedAt', 'desc')
+                where('freelancerId', '==', freelancerId)
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => {
+            const projects = querySnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
                     id: doc.id,
                     ...data,
-                    // Convert dates for UI consistency if needed, though raw firestore timestamp is okay if handled
+                    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : new Date()),
                     dueDate: data.dueDate?.toDate ? data.dueDate.toDate().toISOString() : data.dueDate,
                 };
             });
+
+            // Sort in-memory to avoid composite index requirement
+            return projects.sort((a, b) => b.updatedAt - a.updatedAt);
         } catch (error) {
             console.error("Error fetching projects:", error);
             return [];
@@ -43,17 +45,33 @@ export const projectService = {
     // Create a new project (usually called when proposal is accepted)
     createProject: async (projectData) => {
         try {
-            const docRef = await addDoc(collection(db, 'projects'), {
+            // Semantic ID: PRJ_{JobId} ensures 1:1 mapping
+            const projectId = projectData.jobId ? `PRJ_${projectData.jobId}` : `PRJ_${Date.now()}`;
+            const docRef = doc(db, 'projects', projectId);
+
+            await setDoc(docRef, {
                 ...projectData,
+                id: projectId,
                 status: 'Active',
                 progress: 0,
                 budgetConsumed: 0,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });
-            return docRef.id;
+            return projectId;
         } catch (error) {
             console.error("Error creating project:", error);
+            throw error;
+        }
+    },
+
+    // Delete a project
+    deleteProject: async (projectId) => {
+        try {
+            const projectRef = doc(db, 'projects', projectId);
+            await deleteDoc(projectRef);
+        } catch (error) {
+            console.error("Error deleting project:", error);
             throw error;
         }
     },
