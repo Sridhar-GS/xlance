@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { JobsProvider } from "./context/JobsContext";
 import { Navbar, Footer, ScrollToTop } from "./components/common";
 import ProtectedRoute from "./components/ProtectedRoute";
+import usePushNotifications from "./hooks/usePushNotifications";
 
 
 import HomePage from "./pages/HomePage";
@@ -27,10 +28,14 @@ import CreateProfilePage from "./pages/CreateProfilePage";
 import ClientJobsPage from "./pages/ClientJobsPage";
 import ClientTalentPage from "./pages/ClientTalentPage";
 import TalentPage from "./pages/TalentPage";
+import FreelancerProfilePage from "./pages/FreelancerProfilePage";
 
 function AppLayout() {
   const { authLoading, error, user } = useAuth(); // Get user
   const location = useLocation();
+
+  // Initialize Push Notifications
+  usePushNotifications(user?.uid);
 
   if (authLoading) {
     return (
@@ -67,6 +72,7 @@ function AppLayout() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/talent" element={<TalentPage />} />
+          <Route path="/talent/:id" element={<FreelancerProfilePage />} />
           <Route path="/auth/signin" element={<SignInPage />} />
           <Route path="/auth/signup" element={<SignUpPage />} />
 

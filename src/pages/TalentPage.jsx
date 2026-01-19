@@ -3,9 +3,11 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, Rocket } from 'lucide-react';
 import { mockFreelancers } from '../utils/mockData';
 import { SERVICES } from '../utils/constants';
+import { userService } from '../services/userService';
 import FreelancerCard from '../components/home/FreelancerCard';
 import Button from '../components/common/Button';
 import PageTransition from '../components/common/PageTransition';
+import { LoadingSpinner } from '../components/common';
 
 const TalentPage = () => {
     const [searchParams] = useSearchParams();
@@ -16,8 +18,26 @@ const TalentPage = () => {
     const categoryParam = searchParams.get('category');
 
     // State
+    // State
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const [freelancers, setFreelancers] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch Freelancers
+    useEffect(() => {
+        const fetchFreelancers = async () => {
+            try {
+                const data = await userService.getFreelancers();
+                setFreelancers(data);
+            } catch (error) {
+                console.error("Error fetching freelancers:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchFreelancers();
+    }, []);
 
     // Sync URL param to state on mount/update
     useEffect(() => {
@@ -30,7 +50,7 @@ const TalentPage = () => {
     const categories = ['All', ...SERVICES.map(s => s.name)];
 
     // Filtering logic
-    const filteredFreelancers = mockFreelancers.filter(f => {
+    const filteredFreelancers = freelancers.filter(f => {
         // Category Match
         const matchesCategory = selectedCategory === 'All' ||
             f.category === selectedCategory ||
@@ -99,8 +119,8 @@ const TalentPage = () => {
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
                                     className={`px-5 py-2 rounded-full text-sm font-bold transition-all transform hover:-translate-y-0.5 ${selectedCategory === cat
-                                            ? 'bg-gray-900 text-white shadow-md'
-                                            : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                                        ? 'bg-gray-900 text-white shadow-md'
+                                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                                         }`}
                                 >
                                     {cat}
@@ -110,7 +130,11 @@ const TalentPage = () => {
                     </div>
 
                     {/* Results Grid */}
-                    {filteredFreelancers.length > 0 ? (
+                    {loading ? (
+                        <div className="flex justify-center py-20">
+                            <LoadingSpinner size="lg" />
+                        </div>
+                    ) : filteredFreelancers.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
                             {filteredFreelancers.map((freelancer) => (
                                 <FreelancerCard key={freelancer.id} freelancer={freelancer} />

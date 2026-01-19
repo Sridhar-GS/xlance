@@ -49,7 +49,10 @@ const JobDetailsPage = () => {
 
     const handleSubmitProposal = async (e) => {
         e.preventDefault();
+        console.log("Proposal Submit Clicked. User:", user?.uid);
+
         if (!user) {
+            console.warn("No user found, redirecting to sign-in.");
             navigate('/auth/signin');
             return;
         }
@@ -62,11 +65,13 @@ const JobDetailsPage = () => {
         });
 
         if (Object.keys(errors).length > 0) {
+            console.warn("Proposal Validation Errors:", errors);
             setProposalErrors(errors);
             setProposalTouched({ bidAmount: true, coverLetter: true });
             return;
         }
 
+        console.log("Validation passed. Submitting to service...");
         setSubmitting(true);
         try {
             await proposalService.createProposal({

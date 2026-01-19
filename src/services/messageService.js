@@ -1,4 +1,5 @@
 import { db } from './firebaseConfig';
+import { notificationService } from './notificationService';
 import {
     collection,
     addDoc,
@@ -129,6 +130,26 @@ export const messageService = {
                 updatedAt: serverTimestamp()
                 // unreadCounts: increment logic would go here
             });
+
+            // Trigger In-App Notification for recipient(s)
+            // We fetch the conversation to find the other participant
+            const convSnap = await getDoc(convRef);
+            if (convSnap.exists()) {
+                const data = convSnap.data();
+                const participants = data.participants || [];
+                const recipientId = participants.find(p => p !== senderId);
+
+                if (recipientId) {
+                    await notificationService.addNotification(
+                        recipientId,
+                        'info',
+                        'New Message',
+                        `You have a new message: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`,
+                        conversationId,
+                        { type: 'chat', senderId }
+                    );
+                }
+            }
 
         } catch (error) {
             console.error("Error sending message:", error);

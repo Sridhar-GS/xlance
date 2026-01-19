@@ -5,6 +5,7 @@ import PageTransition from '../common/PageTransition';
 import { useAuth } from '../../context/AuthContext';
 import { proposalService } from '../../services/proposalService';
 import { jobService } from '../../services/jobService';
+import { notificationService } from '../../services/notificationService';
 import { Link, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
@@ -116,6 +117,24 @@ const FreelancerDashboard = () => {
     else if (hour < 17) setGreeting("Good Afternoon");
     else setGreeting("Good Evening");
   }, []);
+
+  // Check for Monthly Connects Notification
+  useEffect(() => {
+    if (user?.uid && daysUntilRefill === 0) {
+      const key = `notified_refill_${new Date().toDateString()}`;
+      if (!sessionStorage.getItem(key)) {
+        notificationService.addNotification(
+          user.uid,
+          'success',
+          'Connects Refilled',
+          'Your monthly connects have been refilled. Happy freelancing!',
+          null,
+          { type: 'system' }
+        );
+        sessionStorage.setItem(key, 'true');
+      }
+    }
+  }, [user, daysUntilRefill]);
 
   const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(true);

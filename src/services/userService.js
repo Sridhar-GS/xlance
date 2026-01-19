@@ -372,6 +372,23 @@ export const userService = {
     },
 
     // Get All Freelancers (for Client Search)
+    // Get Single Freelancer by ID
+    getFreelancerById: async (freelancerId) => {
+        try {
+            const docRef = doc(db, 'users', 'directory', 'freelancers', freelancerId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                return { id: docSnap.id, ...docSnap.data() };
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.error("Error fetching freelancer details:", error);
+            throw error;
+        }
+    },
+
     getFreelancers: async () => {
         try {
             const freelancersRef = collection(db, 'users', 'directory', 'freelancers');

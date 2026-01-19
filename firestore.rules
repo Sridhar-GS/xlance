@@ -64,5 +64,15 @@ service cloud.firestore {
             allow read, list, create: if isAuthenticated() && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants);
         }
     }
+
+    // 7. NOTIFICATIONS
+    match /notifications/{notificationId} {
+      // Anyone can create a notification (e.g. A notifies B)
+      allow create: if isAuthenticated();
+      // Only the recipient can read or update (mark as read) their notifications
+      allow read, update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Optional: Allow delete if needed
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
   }
 }

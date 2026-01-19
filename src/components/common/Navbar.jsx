@@ -4,15 +4,29 @@ import { Menu, X, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from './Button';
 import ProfileCompletionModal from './ProfileCompletionModal';
+import NotificationsPanel from './NotificationsPanel';
 import LogoutConfirmationModal from '../modals/LogoutConfirmationModal';
+import { notificationService } from '../../services/notificationService';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { user, userProfile, signOut } = useAuth();
   const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Subscribe to notifications for the badge
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsubscribe = notificationService.subscribeToNotifications(user.uid, (notifications) => {
+      const count = notifications.filter(n => !n.read).length;
+      setUnreadCount(count);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   // Define logic that doesn't use hooks
   const isAuthPage = location?.pathname?.startsWith('/auth/');
@@ -157,10 +171,19 @@ const Navbar = () => {
                   )}
 
                   {user ? (
-                    <div className="flex items-center gap-4">
-                      <button className="text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-md hover:bg-white/10" title="Notifications">
+                    <div className="flex items-center gap-4 relative">
+                      <button
+                        onClick={() => setShowNotifications(!showNotifications)}
+                        className={`transition-colors p-2 rounded-md hover:bg-white/10 relative ${showNotifications ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900'}`}
+                        title="Notifications"
+                      >
                         <Bell size={20} />
+                        {/* Notification Dot */}
+                        {unreadCount > 0 && (
+                          <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full border border-white pointer-events-none"></span>
+                        )}
                       </button>
+                      <NotificationsPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
                       <button
                         onClick={() => setShowProfileModal(true)}
                         className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 ring-2 ring-transparent hover:ring-primary-300 transition-all cursor-pointer"

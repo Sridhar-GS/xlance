@@ -1,6 +1,8 @@
 import { db } from './firebaseConfig';
 import { collection, addDoc, query, where, getDocs, orderBy, serverTimestamp, doc, updateDoc, increment, setDoc, collectionGroup } from 'firebase/firestore';
 import { userService } from './userService';
+import { notificationService } from './notificationService';
+import { jobService } from './jobService';
 
 export const proposalService = {
   // Create a new proposal
@@ -9,24 +11,50 @@ export const proposalService = {
       // 1. Deduct connects first (optimistic check)
       // Default cost is 4, or calculate based on job budget if available
       const connectsCost = 4;
+      console.log(`Attempting to create proposal. JobId: ${proposalData.jobId}, Freelancer: ${proposalData.freelancerId}`);
+
+      console.log("1. Deducting connects...");
       await userService.deductConnects(proposalData.freelancerId, connectsCost, `Proposal for: ${proposalData.jobTitle}`);
+      console.log("Connects deducted.");
 
       // 2. Create Proposal Document in Subcollection
       // Path: jobs/{jobId}/proposals/{freelancerId}
       // Using setDoc ensures one proposal per freelancer per job
       const proposalRef = doc(db, 'jobs', proposalData.jobId, 'proposals', proposalData.freelancerId);
 
+      console.log("2. Saving proposal doc to path:", proposalRef.path);
       await setDoc(proposalRef, {
         ...proposalData,
         status: 'pending',
         createdAt: serverTimestamp(),
       });
+      console.log("Proposal doc saved.");
 
       // 3. Increment Proposal Count on Job
       const jobRef = doc(db, 'jobs', proposalData.jobId);
       await updateDoc(jobRef, {
         proposalsCount: increment(1)
       });
+
+      // 4. Notify Client (Job Owner)
+      try {
+        const jobDoc = await import('firebase/firestore').then(mod => mod.getDoc(jobRef));
+        if (jobDoc.exists()) {
+          const jobData = jobDoc.data();
+          if (jobData.clientId) {
+            await notificationService.addNotification(
+              jobData.clientId,
+              'info',
+              'New Proposal Received',
+              `You received a proposal for "${jobData.title}" from ${proposalData.freelancerName || 'a freelancer'}.`,
+              proposalRef.id,
+              { type: 'proposal', jobId: proposalData.jobId }
+            );
+          }
+        }
+      } catch (e) {
+        console.error("Error sending proposal notification:", e);
+      }
 
       return proposalRef.id;
     } catch (error) {
@@ -125,6 +153,16 @@ export const proposalService = {
       } catch (err) {
         console.error("Error rewarding connects (Non-critical):", err);
       }
+
+      // 6. Notify Freelancer (Proposal Accepted)
+      await notificationService.addNotification(
+        proposalData.freelancerId,
+        'success',
+        'Proposal Accepted',
+        `Congrats! Your proposal for "${proposalData.jobTitle}" has been accepted. You received 8 Connects bonus.`,
+        projectId,
+        { type: 'project', projectId: projectId }
+      );
 
       return projectId;
     } catch (error) {

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, User, Briefcase, MapPin, IndianRupee, Award, Edit2, Upload, Star, ShieldCheck, Zap, Laptop, Users, Rocket, Trophy, Lock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userService';
+import { storage } from '../../services/firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Button from './Button';
 
 const ProfileCompletionModal = ({ isOpen, onClose }) => {
@@ -22,13 +24,20 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
   const profileFields = useMemo(() => {
     if (!userProfile && !user) return [];
 
+    const p = userProfile || {};
+    const fl = p.freelancerProfile || {};
+
+    // Robust role check (case-insensitive)
+    const roles = Array.isArray(p.role) ? p.role : (p.role ? [p.role] : []);
+    const isClient = roles.some(r => String(r).toLowerCase() === 'client');
+
     return [
       {
         id: 'name',
         label: 'Full Name',
         icon: User,
-        value: userProfile?.name || user?.displayName || '',
-        completed: !!(userProfile?.name || user?.displayName),
+        value: p.name || user?.displayName || '',
+        completed: !!(p.name || user?.displayName),
         type: 'text',
         placeholder: 'Enter your full name',
         category: 'Basic',
@@ -37,8 +46,8 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         id: 'photoURL',
         label: 'Profile Photo',
         icon: Upload,
-        value: userProfile?.photoURL || user?.photoURL || '',
-        completed: !!(userProfile?.photoURL || user?.photoURL),
+        value: p.photoURL || user?.photoURL || '',
+        completed: !!(p.photoURL || user?.photoURL),
         type: 'file',
         placeholder: 'Paste photo URL (or upload)',
         category: 'Basic',
@@ -47,9 +56,9 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         id: 'role',
         label: 'Professional Role',
         icon: Briefcase,
-        value: userProfile?.role ? (Array.isArray(userProfile.role) ? userProfile.role.join(', ') : userProfile.role) : '',
-        completed: !!(userProfile?.role && (Array.isArray(userProfile.role) ? userProfile.role.length > 0 : userProfile.role)),
-        disabled: !!(userProfile?.role && (Array.isArray(userProfile.role) ? userProfile.role.length > 0 : userProfile.role)),
+        value: p.role ? (Array.isArray(p.role) ? p.role.join(', ') : p.role) : '',
+        completed: !!(p.role && (Array.isArray(p.role) ? p.role.length > 0 : p.role)),
+        disabled: !!(p.role && (Array.isArray(p.role) ? p.role.length > 0 : p.role)),
         type: 'select',
         options: [
           { value: 'Freelancer', icon: Laptop, desc: 'I want to offer my services' },
@@ -63,8 +72,8 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         id: 'skills',
         label: 'Skills & Expertise',
         icon: Award,
-        value: userProfile?.skills ? (Array.isArray(userProfile.skills) ? userProfile.skills.join(', ') : userProfile.skills) : '',
-        completed: !!(userProfile?.skills && Array.isArray(userProfile.skills) && userProfile.skills.length > 0),
+        value: p.skills ? (Array.isArray(p.skills) ? p.skills.join(', ') : p.skills) : (Array.isArray(fl.skills) ? fl.skills.join(', ') : fl.skills || ''),
+        completed: !!((p.skills && Array.isArray(p.skills) && p.skills.length > 0) || (fl.skills && Array.isArray(fl.skills) && fl.skills.length > 0) || (typeof p.skills === 'string' && p.skills) || (typeof fl.skills === 'string' && fl.skills)),
         type: 'text',
         placeholder: 'e.g., React, Python, UI/UX Design',
         category: 'Professional',
@@ -73,8 +82,8 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         id: 'bio',
         label: 'Professional Bio',
         icon: User,
-        value: userProfile?.bio || userProfile?.description || '',
-        completed: !!(userProfile?.bio || userProfile?.description),
+        value: p.bio || p.description || fl.headline || '',
+        completed: !!(p.bio || p.description || fl.headline),
         type: 'textarea',
         placeholder: 'Tell us about your expertise and experience...',
         category: 'Professional',
@@ -83,8 +92,8 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         id: 'location',
         label: 'Location',
         icon: MapPin,
-        value: userProfile?.location || '',
-        completed: !!(userProfile?.location),
+        value: p.location || '',
+        completed: !!(p.location),
         type: 'text',
         placeholder: 'e.g., Mumbai, India',
         category: 'Professional',
@@ -93,8 +102,8 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         id: 'hourlyRate',
         label: 'Hourly Rate (₹)',
         icon: IndianRupee,
-        value: userProfile?.hourlyRate || userProfile?.rate || '',
-        completed: !!(userProfile?.hourlyRate || userProfile?.rate),
+        value: p.hourlyRate || p.rate || '',
+        completed: !!(p.hourlyRate || p.rate),
         type: 'number',
         placeholder: 'e.g., 1500',
         category: 'Expert',
@@ -103,8 +112,8 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         id: 'experienceLevel',
         label: 'Experience Level',
         icon: Award,
-        value: userProfile?.experienceLevel || userProfile?.experience || '',
-        completed: !!(userProfile?.experienceLevel || userProfile?.experience),
+        value: p.experienceLevel || p.experience || fl.experienceLevel || '',
+        completed: !!(p.experienceLevel || p.experience || fl.experienceLevel),
         type: 'select',
         options: [
           { value: 'Beginner', icon: Star, desc: 'New to this field' },
@@ -115,7 +124,12 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         placeholder: 'Select experience level',
         category: 'Expert',
       },
-    ];
+    ].filter(field => {
+      if (isClient) {
+        return !['hourlyRate', 'skills', 'experienceLevel'].includes(field.id);
+      }
+      return true;
+    });
   }, [userProfile, user]);
 
   const completedFields = profileFields.filter(f => f.completed).length;
@@ -216,9 +230,26 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
     ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
     ctx.restore();
 
-    const base64 = canvas.toDataURL('image/jpeg', 0.9);
-    setFormData(prev => ({ ...prev, photoURL: base64 }));
-    setCropImage(null);
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      try {
+        setSaving(true); // Reuse saving state for upload indication if needed, or add separate
+        const filename = `profile_photos/${user.uid}_${Date.now()}.jpg`;
+        const storageRef = ref(storage, filename);
+
+        const snapshot = await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        setFormData(prev => ({ ...prev, photoURL: downloadURL }));
+        setCropImage(null);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        // Optional: Add toast error here
+      } finally {
+        setSaving(false);
+      }
+    }, 'image/jpeg', 0.9);
   };
 
   const renderFieldInput = (field) => {

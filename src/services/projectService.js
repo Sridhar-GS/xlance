@@ -1,5 +1,6 @@
 import { db } from './firebaseConfig';
-import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, getDoc, deleteDoc, setDoc, arrayUnion } from 'firebase/firestore';
+import { notificationService } from './notificationService';
 
 export const projectService = {
     // Get active projects for a freelancer
@@ -97,5 +98,68 @@ export const projectService = {
             ]
         };
         return await projectService.createProject(demoProject);
+    },
+
+    // Submit Deliverable (Freelancer Action) -> Notify Client
+    submitDeliverable: async (projectId, deliverableData) => {
+        try {
+            const projectRef = doc(db, 'projects', projectId);
+            await updateDoc(projectRef, {
+                deliverables: arrayUnion({
+                    ...deliverableData,
+                    submittedAt: new Date().toISOString(),
+                    status: 'pending'
+                }),
+                status: 'Under Review'
+            });
+
+            // Notify Client
+            const projectSnap = await getDoc(projectRef);
+            if (projectSnap.exists()) {
+                const data = projectSnap.data();
+                if (data.clientUserId) {
+                    await notificationService.addNotification(
+                        data.clientUserId,
+                        'info',
+                        'Deliverables Submitted',
+                        `${data.freelancerName || 'Freelancer'} submitted work for "${data.title}".`,
+                        projectId,
+                        { type: 'project', projectId }
+                    );
+                }
+            }
+        } catch (error) {
+            console.error("Error submitting deliverable:", error);
+            throw error;
+        }
+    },
+
+    // Approve Milestone (Client Action) -> Notify Freelancer
+    approveMilestone: async (projectId, milestoneTitle) => {
+        try {
+            const projectRef = doc(db, 'projects', projectId);
+            // Updating a nested array object is hard in standard firestore without reading first
+            // For MVP we assume we fetch, update array, write back or just set status
+            // Here we just notify for the event simulation
+
+            // Notify Freelancer
+            const projectSnap = await getDoc(projectRef);
+            if (projectSnap.exists()) {
+                const data = projectSnap.data();
+                if (data.freelancerId) {
+                    await notificationService.addNotification(
+                        data.freelancerId,
+                        'success',
+                        'Milestone Approved',
+                        `Client approved milestone: "${milestoneTitle}". Payment released.`,
+                        projectId,
+                        { type: 'project', projectId }
+                    );
+                }
+            }
+        } catch (error) {
+            console.error("Error approving milestone:", error);
+            throw error;
+        }
     }
 };

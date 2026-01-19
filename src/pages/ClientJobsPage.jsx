@@ -39,6 +39,7 @@ const ProposalsDrawer = ({ job, isOpen, onClose, onHire }) => {
     return (
         <AnimatePresence>
             <motion.div
+                key="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -46,6 +47,7 @@ const ProposalsDrawer = ({ job, isOpen, onClose, onHire }) => {
                 className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
             />
             <motion.div
+                key="drawer"
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
