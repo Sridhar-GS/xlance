@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![XLance Logo](src/assets/logo.png)
 
 **Your Trusted Hub for Freelance in India**
 
@@ -189,18 +188,5 @@ vercel
 
 ---
 
-## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-## 📞 Support
-
-For issues and questions, please [create an issue](https://github.com/Duraisingh-J/xlance/issues) or contact support@xlance.com.
-
----
-
-<div align="center">
-Made with ❤️ in India
 </div>
