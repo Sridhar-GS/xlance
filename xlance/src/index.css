@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode - Professional/Clean (Zinc Neutrals) */
+    --background: 0 0% 100%; /* White */
+    --foreground: 240 10% 3.9%; /* Zinc 950 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 153 60% 53%; /* Emerald 500 #10b981 - Good contrast on white needs care, using 600#059669 for text */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4.8% 95.9%; /* Zinc 100 */
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%; /* Zinc 200 */
+    --input: 240 5.9% 90%;
+    --ring: 142 76% 36%; /* Emerald 600 */
+
+    --radius: 0.75rem;
+
+    /* Override Primary for Light Mode Text Readability */
+    --primary: 153 60% 45%; /* Emerald 600 */
+  }
+
+  .dark {
+    /* Dark Mode - Professional (Zinc 950 Bg) */
+    --background: 240 10% 3.9%; /* Zinc 950 */
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 153 60% 53%; /* Emerald 500 - Pops on Dark */
+    --primary-foreground: 144 65% 10%; /* Dark green text on button */
+
+    --secondary: 240 3.7% 15.9%; /* Zinc 800 */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%; /* Zinc 800 */
+    --input: 240 3.7% 15.9%;
+    --ring: 142 76% 36%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+}
