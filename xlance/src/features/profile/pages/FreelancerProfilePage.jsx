@@ -101,10 +101,10 @@ const FreelancerProfilePage = () => {
                                     className="w-full h-full object-cover"
                                 />
                             </div>
-                            <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider border border-emerald-100">
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100">
                                 <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                                 </span>
                                 Available
                             </div>
@@ -178,12 +178,12 @@ const FreelancerProfilePage = () => {
                             <h3 className="text-lg font-bold text-gray-900 mb-4">Verifications</h3>
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <span className="flex items-center gap-2 text-sm font-medium text-gray-700"><ShieldCheck size={18} className="text-green-500" /> Identity Verified</span>
-                                    <CheckCircle size={16} className="text-green-500" />
+                                    <span className="flex items-center gap-2 text-sm font-medium text-gray-700"><ShieldCheck size={18} className="text-blue-500" /> Identity Verified</span>
+                                    <CheckCircle size={16} className="text-blue-500" />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="flex items-center gap-2 text-sm font-medium text-gray-700"><Globe size={18} className="text-blue-500" /> Email Verified</span>
-                                    <CheckCircle size={16} className="text-green-500" />
+                                    <CheckCircle size={16} className="text-blue-500" />
                                 </div>
                             </div>
                         </div>
@@ -213,7 +213,7 @@ const FreelancerProfilePage = () => {
                                                 />
                                             </div>
                                             <div className="p-4 flex-1 flex flex-col">
-                                                <h4 className="font-bold text-gray-900 line-clamp-2 mb-2 group-hover:text-emerald-600 transition-colors">
+                                                <h4 className="font-bold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
                                                     {gig.title}
                                                 </h4>
                                                 <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-100">

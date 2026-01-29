@@ -337,7 +337,7 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 animate-in fade-in slide-in-from-top-2">
           <div className="flex justify-between items-center mb-4">
             <label className="text-sm font-semibold text-gray-900">{field.label}</label>
-            {field.completed && <CheckCircle2 size={16} className="text-green-500" />}
+            {field.completed && <CheckCircle2 size={16} className="text-blue-500" />}
           </div>
 
           <div className="space-y-4">
@@ -409,7 +409,7 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 animate-in fade-in slide-in-from-top-2">
         <div className="flex justify-between items-center mb-4">
           <label className="text-sm font-semibold text-gray-900">{field.label}</label>
-          {field.completed && <CheckCircle2 size={16} className="text-green-500" />}
+          {field.completed && <CheckCircle2 size={16} className="text-blue-500" />}
         </div>
 
         <div className="space-y-4">
@@ -495,7 +495,7 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
                 <div className={`p-3 rounded-xl ${tier.bg} bg-opacity-10 text-primary-600`}><tier.icon size={24} className={tier.color} /></div>
                 <div><p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Tier</p><p className={`text-lg font-bold ${tier.color}`}>{tier.name}</p></div>
               </div>
-              <div className="space-y-2">{tier.benefits.map((b, i) => (<div key={i} className="flex items-center gap-2 text-xs font-medium text-gray-600"><CheckCircle2 size={12} className="text-green-500" /> {b}</div>))}</div>
+              <div className="space-y-2">{tier.benefits.map((b, i) => (<div key={i} className="flex items-center gap-2 text-xs font-medium text-gray-600"><CheckCircle2 size={12} className="text-blue-500" /> {b}</div>))}</div>
             </div>
 
             <div className="mt-8 pt-6 border-t border-gray-200 hidden md:block">
@@ -529,7 +529,7 @@ const ProfileCompletionModal = ({ isOpen, onClose }) => {
                                 <div className="flex-1">
                                   <div className="flex justify-between items-start">
                                     <div><p className="text-sm font-medium text-gray-500 mb-0.5">{field.label}</p><p className="text-base font-semibold text-gray-900">{field.value ? (field.id === 'photoURL' ? 'Photo Uploaded' : field.value) : <span className="text-gray-400 italic font-normal">Not set</span>}</p></div>
-                                    {field.completed ? <CheckCircle2 size={18} className="text-green-500" /> : <div className="w-2 h-2 rounded-full bg-red-400 mt-2" />}
+                                    {field.completed ? <CheckCircle2 size={18} className="text-blue-500" /> : <div className="w-2 h-2 rounded-full bg-red-400 mt-2" />}
                                   </div>
                                 </div>
                               </div>

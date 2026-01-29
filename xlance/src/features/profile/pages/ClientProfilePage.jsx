@@ -165,12 +165,12 @@ const ClientProfilePage = () => {
                                 <h3 className="text-lg font-bold text-gray-900 mb-4">Verifications</h3>
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-700"><ShieldCheck size={18} className="text-green-500" /> Payment Verified</span>
-                                        <CheckCircle size={16} className="text-green-500" />
+                                        <span className="flex items-center gap-2 text-sm font-medium text-gray-700"><ShieldCheck size={18} className="text-blue-500" /> Payment Verified</span>
+                                        <CheckCircle size={16} className="text-blue-500" />
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="flex items-center gap-2 text-sm font-medium text-gray-700"><Globe size={18} className="text-blue-500" /> Email Verified</span>
-                                        <CheckCircle size={16} className="text-green-500" />
+                                        <CheckCircle size={16} className="text-blue-500" />
                                     </div>
                                 </div>
                             </div>

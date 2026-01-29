@@ -19,7 +19,7 @@ const NichesSection = () => {
   const getGradientClasses = (id) => {
     const gradients = {
       1: 'bg-gradient-to-br from-orange-400 to-red-500',
-      2: 'bg-gradient-to-br from-green-400 to-emerald-500',
+      2: 'bg-gradient-to-br from-blue-400 to-blue-600',
       3: 'bg-gradient-to-br from-blue-400 to-indigo-500',
       4: 'bg-gradient-to-br from-yellow-400 to-amber-500',
     };

@@ -210,7 +210,7 @@ const SettingsPage = () => {
                             {/* Action Bar */}
                             <div className="flex items-center justify-end gap-4">
                                 {success && (
-                                    <span className="text-green-600 font-medium flex items-center gap-2 animate-fade-in">
+                                    <span className="text-blue-600 font-medium flex items-center gap-2 animate-fade-in">
                                         <CheckCircle2 size={18} /> Saved Successfully
                                     </span>
                                 )}

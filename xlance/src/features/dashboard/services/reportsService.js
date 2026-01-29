@@ -188,7 +188,7 @@ export const reportsService = {
                 'from-blue-500 to-blue-600',
                 'from-purple-500 to-purple-600',
                 'from-pink-500 to-pink-600',
-                'from-green-500 to-green-600',
+                'from-blue-500 to-blue-600',
                 'from-orange-500 to-orange-600'
             ];
 
@@ -346,7 +346,7 @@ export const reportsService = {
                 const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
 
                 return [
-                    { label: 'Completion Rate', value: completionRate, color: 'bg-green-500' },
+                    { label: 'Completion Rate', value: completionRate, color: 'bg-blue-500' },
                     { label: 'Delivery Rate', value: deliveryRate, color: 'bg-blue-500' },
                     { label: 'Active Orders', value: Math.min(100, orders.filter(o => o.status === 'active').length * 20), color: 'bg-purple-500' },
                     { label: 'Profile Strength', value: 75, color: 'bg-yellow-400' }
@@ -354,10 +354,10 @@ export const reportsService = {
             } else {
                 // Client metrics
                 return [
-                    { label: 'Order Completion', value: totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0, color: 'bg-green-500' },
+                    { label: 'Order Completion', value: totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0, color: 'bg-blue-500' },
                     { label: 'Repeat Hires', value: 0, color: 'bg-blue-500' }, // Would need more complex logic
                     { label: 'Satisfaction', value: 90, color: 'bg-purple-500' },
-                    { label: 'On-Budget', value: 85, color: 'bg-emerald-500' }
+                    { label: 'On-Budget', value: 85, color: 'bg-blue-400' }
                 ];
             }
         } catch (error) {

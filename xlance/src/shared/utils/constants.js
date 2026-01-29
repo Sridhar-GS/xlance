@@ -9,7 +9,7 @@ export const SERVICES = [
 
 export const NICHES = [
   { id: 1, name: 'Web Dev', icon: 'Code', color: 'bg-red-100' },
-  { id: 2, name: 'App Dev', icon: 'Smartphone', color: 'bg-green-100' },
+  { id: 2, name: 'App Dev', icon: 'Smartphone', color: 'bg-blue-100' },
   { id: 3, name: 'UI/UX', icon: 'Palette', color: 'bg-blue-100' },
   { id: 4, name: 'Marketing', icon: 'TrendingUp', color: 'bg-yellow-100' },
 ];
@@ -61,7 +61,7 @@ export const HOW_IT_WORKS = [
 ];
 
 export const FEATURE_TAGS = [
-  { label: 'UPI Support', color: 'bg-green-100 text-green-700' },
+  { label: 'UPI Support', color: 'bg-blue-100 text-blue-700' },
   { label: 'AI Matching', color: 'bg-blue-100 text-blue-700' },
   { label: 'Secured Payment', color: 'bg-purple-100 text-purple-700' },
 ];

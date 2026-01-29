@@ -80,7 +80,7 @@ const FreelancerDashboard = () => {
             </div>
             <div className="flex gap-3">
               <Link to="/gigs/create">
-                <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-200">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200">
                   Create New Gig
                 </Button>
               </Link>
@@ -115,7 +115,7 @@ const FreelancerDashboard = () => {
               value={`₹${totalEarnings.toLocaleString()}`}
               subValue="Cleared funds"
               icon={DollarSign}
-              colorClass="bg-emerald-500"
+              colorClass="bg-blue-500"
             />
           </div>
 
@@ -162,7 +162,7 @@ const FreelancerDashboard = () => {
                   <h3 className="font-bold text-gray-900 flex items-center gap-2">
                     <Briefcase size={18} /> Active Orders
                   </h3>
-                  <Link to="/orders" className="text-xs font-bold text-green-600">View All</Link>
+                  <Link to="/orders" className="text-xs font-bold text-blue-600">View All</Link>
                 </div>
 
                 <div className="space-y-3">

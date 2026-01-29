@@ -118,7 +118,7 @@ const CreateGigPage = () => {
                     </div>
 
                     <Card className="p-0 border-none shadow-xl overflow-hidden">
-                        <div className="h-2 bg-gradient-to-r from-green-400 to-green-600"></div> {/* Fiverr Green-ish */}
+                        <div className="h-2 bg-gradient-to-r from-blue-400 to-blue-600"></div> {/* Brand Blue */}
 
                         <div className="p-8 sm:p-10">
                             {submitError && (
@@ -140,7 +140,7 @@ const CreateGigPage = () => {
                                                 value={formData.title}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                className={`w-full pl-16 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-lg font-medium transition-all ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full pl-16 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium transition-all ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="do something I'm really good at"
                                             />
                                         </div>
@@ -154,7 +154,7 @@ const CreateGigPage = () => {
                                             name="category"
                                             value={formData.category}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none bg-white font-medium"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium"
                                         >
                                             {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
@@ -183,7 +183,7 @@ const CreateGigPage = () => {
                                             onChange={handleChange}
                                             onBlur={handleBlur}
                                             rows={6}
-                                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none resize-none ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
                                             placeholder="Describe your service in detail..."
                                         />
                                         {renderError('description')}
@@ -213,7 +213,7 @@ const CreateGigPage = () => {
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
                                                 min="1"
-                                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none ${errors.deliveryTime ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none ${errors.deliveryTime ? 'border-red-500' : 'border-gray-300'}`}
                                             />
                                             {renderError('deliveryTime')}
                                         </div>

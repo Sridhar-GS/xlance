@@ -98,7 +98,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
                   className={`p-4 hover:bg-white/60 transition-colors cursor-pointer ${notif.read ? 'opacity-60' : 'bg-primary-50/30'}`}
                 >
                   <div className="flex gap-3">
-                    <div className={`mt-1 p-1.5 rounded-full shrink-0 ${notif.type === 'success' ? 'bg-emerald-100 text-emerald-600' :
+                    <div className={`mt-1 p-1.5 rounded-full shrink-0 ${notif.type === 'success' ? 'bg-blue-100 text-blue-600' :
                       notif.type === 'warning' ? 'bg-amber-100 text-amber-600' :
                         'bg-blue-100 text-blue-600'
                       }`}>

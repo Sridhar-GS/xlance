@@ -62,7 +62,7 @@ const OrderDetailsPage = () => {
         switch (s) {
             case 'active': return 'bg-blue-100 text-blue-700 border-blue-200';
             case 'delivered': return 'bg-purple-100 text-purple-700 border-purple-200';
-            case 'completed': return 'bg-green-100 text-green-700 border-green-200';
+            case 'completed': return 'bg-blue-100 text-blue-700 border-blue-200';
             case 'cancelled': return 'bg-red-100 text-red-700 border-red-200';
             default: return 'bg-gray-100 text-gray-700';
         }
@@ -86,7 +86,7 @@ const OrderDetailsPage = () => {
                             </p>
                         </div>
                         {isBuyer && order.status === 'delivered' && (
-                            <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg" onClick={handleAcceptDelivery}>
+                            <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg" onClick={handleAcceptDelivery}>
                                 <CheckCircle2 size={18} className="mr-2" /> Accept & Complete
                             </Button>
                         )}
@@ -152,12 +152,12 @@ const OrderDetailsPage = () => {
                             )}
 
                             {order.status === 'completed' && (
-                                <Card className="p-8 text-center bg-green-50 border border-green-100">
-                                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Card className="p-8 text-center bg-blue-50 border border-blue-100">
+                                    <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <CheckCircle2 size={32} />
                                     </div>
-                                    <h2 className="text-2xl font-black text-green-800 mb-2">Order Completed</h2>
-                                    <p className="text-green-700">This order has been successfully completed. Funds have been released.</p>
+                                    <h2 className="text-2xl font-black text-blue-800 mb-2">Order Completed</h2>
+                                    <p className="text-blue-700">This order has been successfully completed. Funds have been released.</p>
                                 </Card>
                             )}
 
@@ -187,7 +187,7 @@ const OrderDetailsPage = () => {
                                     )}
                                     {order.status === 'completed' && (
                                         <div className="relative pl-8">
-                                            <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white shadow-sm" />
+                                            <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-sm" />
                                             <p className="text-sm font-bold text-gray-900">Order Completed</p>
                                             <p className="text-xs text-gray-500">Funds Released</p>
                                         </div>

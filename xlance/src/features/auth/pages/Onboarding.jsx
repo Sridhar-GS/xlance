@@ -288,7 +288,7 @@ const Onboarding = () => {
 
           <div className="flex justify-between items-center mt-12 pt-8 border-t border-white/40">
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic flex items-center gap-2">
-              <ShieldCheck size={14} className="text-emerald-500" /> Secure Protocol v2
+              <ShieldCheck size={14} className="text-blue-500" /> Secure Protocol v2
             </p>
             <div className="flex gap-4">
               <Button variant="ghost" className="px-8 h-14 rounded-2xl font-black uppercase tracking-widest text-gray-500" onClick={async () => {

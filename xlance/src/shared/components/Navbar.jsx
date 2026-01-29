@@ -129,7 +129,7 @@ const Navbar = () => {
               {user && hasRole('freelancer') && (
                 <button
                   onClick={toggleMode}
-                  className="text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
                 >
                   {viewMode === 'buying' ? 'Switch to Selling' : 'Switch to Buying'}
                 </button>
@@ -149,7 +149,7 @@ const Navbar = () => {
                   {/* Create Gig Button (Seller Mode Only) */}
                   {viewMode === 'selling' && (
                     <Link to="/gigs/create">
-                      <Button className="py-2 px-4 shadow-md bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+                      <Button className="py-2 px-4 shadow-md bg-blue-600 hover:bg-blue-700 text-white border-none">
                         <PlusCircle size={18} className="mr-2" /> Post Gig
                       </Button>
                     </Link>
@@ -225,7 +225,7 @@ const Navbar = () => {
                 {hasRole('freelancer') ? (
                   <>
                     <Link to="/my-gigs" onClick={() => setIsOpen(false)} className="block py-2 font-medium">My Gigs</Link>
-                    <Link to="/gigs/create" onClick={() => setIsOpen(false)} className="block py-2 font-medium text-green-600">Post a Gig</Link>
+                    <Link to="/gigs/create" onClick={() => setIsOpen(false)} className="block py-2 font-medium text-blue-600">Post a Gig</Link>
                   </>
                 ) : (
                   <Link to="/marketplace" onClick={() => setIsOpen(false)} className="block py-2 font-medium">Browse Gigs</Link>

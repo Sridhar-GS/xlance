@@ -23,7 +23,7 @@ const EnhancedStatCard = ({ title, value, subtitle, trend, icon: Icon, gradient,
               <Icon size={24} />
             </div>
             {trend !== undefined && trend !== null && (
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${trend >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${trend >= 0 ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'
                 }`}>
                 {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                 {Math.abs(trend)}%
@@ -114,7 +114,7 @@ const Reports = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Released': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Released': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Pending Review': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'In Progress': return 'bg-blue-50 text-blue-700 border-blue-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
@@ -214,7 +214,7 @@ const Reports = () => {
             value={loading ? '...' : currency(summary?.totalAmount || 0)}
             trend={summary?.trend}
             icon={isClient ? Wallet : IndianRupee}
-            gradient={isClient ? "from-purple-500 to-indigo-600" : "from-green-500 to-emerald-600"}
+            gradient={isClient ? "from-purple-500 to-indigo-600" : "from-blue-500 to-blue-600"}
             loading={loading}
           />
           <EnhancedStatCard

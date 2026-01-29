@@ -267,7 +267,7 @@ const Messages = () => {
                     <div>
                       <div className="font-bold text-gray-900 flex items-center gap-2">
                         {activeConv?.name}
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                       </div>
                       <div className="text-xs text-gray-500 font-medium">Online</div>
                     </div>

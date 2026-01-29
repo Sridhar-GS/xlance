@@ -65,7 +65,7 @@ const ClientDashboard = () => {
             <p className="text-gray-500 mt-2 font-medium">Manage your orders and find new services.</p>
           </div>
           <Link to="/marketplace">
-            <Button className="shadow-lg shadow-green-600/20 bg-green-600 hover:bg-green-700 text-white border-none">
+            <Button className="shadow-lg shadow-blue-600/20 bg-blue-600 hover:bg-blue-700 text-white border-none">
               <Search size={18} className="mr-2" /> Find Services
             </Button>
           </Link>
@@ -107,7 +107,7 @@ const ClientDashboard = () => {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
-              <Link to="/orders" className="text-green-600 font-bold text-sm hover:underline">View All</Link>
+              <Link to="/orders" className="text-blue-600 font-bold text-sm hover:underline">View All</Link>
             </div>
 
             {loading ? (
@@ -128,7 +128,7 @@ const ClientDashboard = () => {
                         <img src={order.gigImage} alt="Gig" className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 group-hover:text-green-600 transition-colors">{order.gigTitle}</h3>
+                        <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{order.gigTitle}</h3>
                         <p className="text-xs text-gray-500 mt-1">Order #{order.id.slice(0, 8)} • Status: <span className="uppercase font-bold">{order.status}</span></p>
                       </div>
                       <div className="font-black text-gray-900">₹{order.total}</div>

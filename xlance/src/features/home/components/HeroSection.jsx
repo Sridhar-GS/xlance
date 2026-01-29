@@ -58,7 +58,7 @@ const HeroSection = () => {
         >
           {FEATURE_TAGS.map((tag, index) => (
             <div key={index} className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border bg-card text-muted-foreground border-border hover:border-primary/50 hover:text-primary transition-colors cursor-default`}>
-              <span className={`w-2 h-2 rounded-full ${index % 2 === 0 ? 'bg-green-500' : 'bg-blue-500'}`} />
+              <span className={`w-2 h-2 rounded-full ${index % 2 === 0 ? 'bg-blue-500' : 'bg-blue-400'}`} />
               {tag.label}
             </div>
           ))}
